@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { color-scheme: light; }
+  body { @apply bg-bg-base text-text-primary font-sans; -webkit-font-smoothing: antialiased; }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-bg-base; }
+  ::-webkit-scrollbar-thumb { @apply bg-bg-border rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-text-tertiary; }
+}
+
+@layer components {
+  .card { @apply bg-bg-card border border-bg-border rounded-lg; }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover
+           text-white text-sm font-medium px-4 py-2 rounded-lg
+           transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 bg-transparent hover:bg-bg-border
+           text-text-secondary hover:text-text-primary text-sm font-medium px-4 py-2 rounded-lg
+           border border-bg-border transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 bg-bg-border text-text-primary
+           text-sm font-medium px-4 py-2 rounded-lg
+           transition-opacity duration-150 hover:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 bg-danger hover:bg-red-700
+           text-white text-sm font-medium px-4 py-2 rounded-lg
+           transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-success {
+    @apply inline-flex items-center justify-center gap-2 bg-success hover:bg-green-700
+           text-white text-sm font-medium px-4 py-2 rounded-lg
+           transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .input {
+    @apply bg-bg-card border border-bg-border text-text-primary placeholder-text-tertiary
+           rounded-lg px-3 py-2 w-full focus:outline-none focus:border-primary
+           transition-colors duration-150;
+  }
+
+  select.input {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 2.5rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.125rem 1.125rem;
+    cursor: pointer;
+  }
+  select.input:focus {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%232563EB' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+
+  .label { @apply text-text-secondary text-sm font-medium mb-1 block; }
+
+  .badge { @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium; }
+  .badge-pending { @apply badge bg-amber-100 text-amber-700; }
+  .badge-approved { @apply badge bg-green-100 text-green-700; }
+  .badge-rejected { @apply badge bg-red-100 text-red-700; }
+  .badge-active { @apply badge bg-green-100 text-green-700; }
+  .badge-archived { @apply badge bg-gray-100 text-gray-600; }
+  .badge-success { @apply badge bg-success/20 text-success; }
+  .badge-danger { @apply badge bg-danger/20 text-danger; }
+  .badge-neutral { @apply badge bg-bg-border text-text-secondary; }
+  .badge-primary { @apply badge bg-primary/20 text-primary; }
+
+  .table-base { @apply w-full text-sm; }
+  .table-base th { @apply text-text-tertiary font-medium text-left py-2.5 px-3 sm:py-3 sm:px-4 border-b border-bg-border whitespace-nowrap; }
+  .table-base td { @apply py-2.5 px-3 sm:py-3 sm:px-4 border-b border-bg-border/50 text-text-secondary; }
+  .table-base tr:last-child td { @apply border-b-0; }
+  .table-base tr:hover td { @apply bg-bg-border/30; }
+
+  .skeleton { @apply bg-bg-border animate-pulse rounded; }
+  .mono { @apply font-mono text-sm; }
+  .page-title { @apply text-2xl font-semibold text-text-primary; }
+  .section-header { @apply text-lg font-semibold text-text-primary mb-4; }
+  .section-title { @apply text-base font-semibold text-text-primary mb-3; }
+  .stat-card { @apply card p-6; }
+
+  .masonry-grid { columns: 1; column-gap: 12px; }
+  @media (min-width: 640px) { .masonry-grid { columns: 2; } }
+  @media (min-width: 1024px) { .masonry-grid { columns: 3; } }
+  .masonry-grid > * { break-inside: avoid; margin-bottom: 12px; }
+}
