@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { PhotoGrid } from '@/components/wall/PhotoGrid'
 import { SlideshowPlayer } from '@/components/wall/SlideshowPlayer'
 import { NewPhotoToast } from '@/components/wall/NewPhotoToast'
+import { WallGate } from '@/components/wall/WallGate'
 import { usePhotoWall } from '@/hooks/usePhotoWall'
 import type { Room, Photo } from '@/types'
 
@@ -11,7 +12,7 @@ interface WallDisplayProps {
   initialPhotos: Photo[]
 }
 
-export function WallDisplay({ room, initialPhotos }: WallDisplayProps) {
+function WallContent({ room, initialPhotos }: WallDisplayProps) {
   const [slideshowActive, setSlideshowActive] = useState(false)
   const [showToast, setShowToast] = useState(false)
 
@@ -68,5 +69,13 @@ export function WallDisplay({ room, initialPhotos }: WallDisplayProps) {
       {/* Toast */}
       <NewPhotoToast show={showToast} onDismiss={() => setShowToast(false)} />
     </div>
+  )
+}
+
+export function WallDisplay({ room, initialPhotos }: WallDisplayProps) {
+  return (
+    <WallGate joinCode={room.join_code} roomName={room.name}>
+      <WallContent room={room} initialPhotos={initialPhotos} />
+    </WallGate>
   )
 }

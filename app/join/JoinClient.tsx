@@ -55,6 +55,8 @@ export function JoinClient() {
         if (!result.success) {
           setError(result.error)
         } else {
+          // Pre-unlock the room gate so guests don't enter the code twice
+          sessionStorage.setItem(`wall_access_${codeToUse}`, '1')
           router.push(`/room/${result.data}`)
         }
       } else {
@@ -64,6 +66,7 @@ export function JoinClient() {
         if (!result.success) {
           setError(result.error)
         } else {
+          sessionStorage.setItem(`wall_access_${codeToUse}`, '1')
           router.push(`/room/${result.data}`)
         }
       }
