@@ -66,6 +66,17 @@ export default async function ManageRoomPage({
     admin.from('audit_logs').select('*').eq('target_id', params.room_id).order('created_at', { ascending: false }).limit(20),
   ])
 
+  // Resolve actor names for audit log entries
+  const actorIdSet: Record<string, true> = {}
+  ;(auditLogs ?? []).forEach(l => { if (l.actor_id) actorIdSet[l.actor_id] = true })
+  const actorIds = Object.keys(actorIdSet)
+  const { data: actorProfiles } = actorIds.length > 0
+    ? await admin.from('profiles').select('id, full_name, username').in('id', actorIds)
+    : { data: [] }
+  const actorMap: Record<string, string> = Object.fromEntries(
+    (actorProfiles ?? []).map(p => [p.id, (p.full_name ?? p.username ?? null)]).filter(([, v]) => v)
+  )
+
   const baseUrl = `/manage/${params.room_id}`
   const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000'
 
@@ -97,6 +108,7 @@ export default async function ManageRoomPage({
         moderators={(mods ?? []) as any}
         memberCount={memberCount ?? 0}
         auditLogs={(auditLogs ?? []) as AuditLog[]}
+        actorMap={actorMap}
         userRole={role}
         appUrl={appUrl}
         activeTab={activeTab}

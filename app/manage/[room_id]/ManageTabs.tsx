@@ -17,6 +17,7 @@ interface ManageTabsProps {
   moderators: Array<{ id: string; moderator_id: string; profiles: unknown }>
   memberCount: number
   auditLogs: AuditLog[]
+  actorMap: Record<string, string>
   userRole: Role
   appUrl: string
   activeTab: 'overview' | 'photos' | 'moderators' | 'settings'
@@ -30,6 +31,127 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+function relativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+  return formatDate(iso)
+}
+
+interface ActivityEntry {
+  icon: 'photo-check' | 'photo-x' | 'join' | 'settings' | 'archive' | 'upload' | 'default'
+  text: string
+  detail?: string | undefined
+  actor?: string | undefined
+}
+
+function describeActivity(log: AuditLog, actorMap: Record<string, string>): ActivityEntry {
+  const meta = (log.metadata ?? {}) as Record<string, string>
+  const actor = actorMap[log.actor_id]
+
+  switch (log.action) {
+    case 'room.update':
+      return { icon: 'settings', text: 'Room settings updated', actor }
+    case 'room.create':
+    case 'room_created':
+      return { icon: 'default', text: 'Room created', detail: meta.room_name, actor }
+    case 'room.archive':
+    case 'room_archived':
+      return { icon: 'archive', text: 'Room archived', actor }
+    case 'room.regenerate_code':
+      return { icon: 'settings', text: 'Join code regenerated', actor }
+    case 'room.join':
+    case 'room_joined': {
+      const who = meta.username ? `@${meta.username}` : actor ?? 'Guest'
+      return { icon: 'join', text: `${who} joined`, detail: meta.join_code ? `code: ${meta.join_code}` : undefined }
+    }
+    case 'photo.approved':
+    case 'photo_approved':
+      return {
+        icon: 'photo-check',
+        text: 'Photo approved',
+        detail: meta.uploader ? `uploaded by @${meta.uploader}` : undefined,
+        actor,
+      }
+    case 'photo.rejected':
+    case 'photo_rejected':
+      return {
+        icon: 'photo-x',
+        text: 'Photo rejected',
+        detail: [
+          meta.uploader ? `uploaded by @${meta.uploader}` : null,
+          meta.reason ? `"${meta.reason}"` : null,
+        ].filter(Boolean).join(' · ') || undefined,
+        actor,
+      }
+    case 'photo.delete':
+    case 'photo_deleted':
+      return { icon: 'photo-x', text: 'Photo deleted', actor }
+    case 'photo.upload':
+    case 'photo_uploaded':
+      return { icon: 'upload', text: 'Photo uploaded', actor: meta.uploader ? `@${meta.uploader}` : actor }
+    default:
+      return { icon: 'default', text: log.action.replace(/[._]/g, ' '), actor }
+  }
+}
+
+const activityIcons: Record<ActivityEntry['icon'], React.ReactNode> = {
+  'photo-check': (
+    <div className="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
+      <svg className="w-4 h-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      </svg>
+    </div>
+  ),
+  'photo-x': (
+    <div className="w-8 h-8 rounded-full bg-danger/10 flex items-center justify-center flex-shrink-0">
+      <svg className="w-4 h-4 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </div>
+  ),
+  join: (
+    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+      <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+      </svg>
+    </div>
+  ),
+  settings: (
+    <div className="w-8 h-8 rounded-full bg-bg-border flex items-center justify-center flex-shrink-0">
+      <svg className="w-4 h-4 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    </div>
+  ),
+  archive: (
+    <div className="w-8 h-8 rounded-full bg-bg-border flex items-center justify-center flex-shrink-0">
+      <svg className="w-4 h-4 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+      </svg>
+    </div>
+  ),
+  upload: (
+    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+      <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+      </svg>
+    </div>
+  ),
+  default: (
+    <div className="w-8 h-8 rounded-full bg-bg-border flex items-center justify-center flex-shrink-0">
+      <svg className="w-4 h-4 text-text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+  ),
+}
+
 function getProfile(mod: { profiles: unknown }): { full_name: string | null; username: string | null } | null {
   if (mod.profiles && typeof mod.profiles === 'object') {
     const p = mod.profiles as Record<string, unknown>
@@ -41,7 +163,7 @@ function getProfile(mod: { profiles: unknown }): { full_name: string | null; use
   return null
 }
 
-export function ManageTabs({ room, photos, moderators, memberCount, auditLogs, userRole, appUrl, activeTab }: ManageTabsProps) {
+export function ManageTabs({ room, photos, moderators, memberCount, auditLogs, actorMap, userRole, appUrl, activeTab }: ManageTabsProps) {
   const router = useRouter()
   const [statusFilter, setStatusFilter] = useState<PhotoStatus>('all')
   const [photoList, setPhotoList] = useState(photos)
@@ -186,15 +308,31 @@ export function ManageTabs({ room, photos, moderators, memberCount, auditLogs, u
             <JoinCodeCard roomId={room.id} joinCode={room.join_code} appUrl={appUrl} roomId2={room.id} />
 
             {auditLogs.length > 0 && (
-              <div className="card p-4">
-                <h3 className="section-title">Recent activity</h3>
-                <div className="space-y-2">
-                  {auditLogs.slice(0, 10).map(log => (
-                    <div key={log.id} className="flex items-center justify-between text-sm">
-                      <span className="text-text-secondary font-mono">{log.action}</span>
-                      <span className="text-text-tertiary">{formatDate(log.created_at)}</span>
-                    </div>
-                  ))}
+              <div className="card overflow-hidden">
+                <div className="px-4 py-3 border-b border-bg-border">
+                  <h3 className="font-semibold text-text-primary text-sm">Recent activity</h3>
+                </div>
+                <div className="divide-y divide-bg-border/50">
+                  {auditLogs.slice(0, 15).map(log => {
+                    const entry = describeActivity(log, actorMap)
+                    return (
+                      <div key={log.id} className="flex items-start gap-3 px-4 py-3">
+                        {activityIcons[entry.icon]}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-text-primary font-medium">{entry.text}</p>
+                          {entry.detail && (
+                            <p className="text-xs text-text-tertiary mt-0.5 truncate">{entry.detail}</p>
+                          )}
+                          {entry.actor && (
+                            <p className="text-xs text-text-tertiary mt-0.5">by {entry.actor}</p>
+                          )}
+                        </div>
+                        <span className="text-xs text-text-tertiary whitespace-nowrap flex-shrink-0 pt-0.5">
+                          {relativeTime(log.created_at)}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
