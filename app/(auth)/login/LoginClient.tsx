@@ -6,7 +6,8 @@ import { signIn } from '@/app/actions/auth'
 export function LoginClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectTo = searchParams.get('redirect') ?? '/rooms'
+  const raw = searchParams.get('redirect') ?? '/rooms'
+  const redirectTo = raw.startsWith('/') && !raw.startsWith('//') ? raw : '/rooms'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')

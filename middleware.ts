@@ -61,7 +61,9 @@ export async function middleware(request: NextRequest) {
   // Login/register: redirect to rooms if already authed
   if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
     if (user) {
-      const redirectTo = request.nextUrl.searchParams.get('redirect') ?? '/rooms'
+      const raw = request.nextUrl.searchParams.get('redirect') ?? '/rooms'
+      // Only allow same-origin redirects — strip anything that looks absolute
+      const redirectTo = raw.startsWith('/') && !raw.startsWith('//') ? raw : '/rooms'
       return NextResponse.redirect(new URL(redirectTo, request.url))
     }
     return response

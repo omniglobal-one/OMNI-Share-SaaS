@@ -96,6 +96,16 @@ export async function removeMember(roomId: string, userId: string): Promise<Acti
   if (!user) return { success: false, error: 'Not authenticated' }
 
   const admin = createServiceRoleClient()
+
+  // Only the room owner, an admin, or the member themselves may remove a membership
+  const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
+  const isAdmin = profile?.role === 'admin'
+  const isSelf = user.id === userId
+  if (!isAdmin && !isSelf) {
+    const { data: room } = await admin.from('rooms').select('owner_id').eq('id', roomId).single()
+    if (room?.owner_id !== user.id) return { success: false, error: 'Insufficient permissions' }
+  }
+
   const { error } = await admin
     .from('room_members')
     .delete()

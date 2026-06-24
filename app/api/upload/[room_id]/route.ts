@@ -4,6 +4,22 @@ import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supab
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic']
 
+const MAGIC_BYTES: Array<{ mime: string; bytes: number[]; offset?: number }> = [
+  { mime: 'image/jpeg', bytes: [0xFF, 0xD8, 0xFF] },
+  { mime: 'image/png',  bytes: [0x89, 0x50, 0x4E, 0x47] },
+  { mime: 'image/webp', bytes: [0x52, 0x49, 0x46, 0x46], offset: 0 }, // RIFF....WEBP
+  { mime: 'image/heic', bytes: [0x66, 0x74, 0x79, 0x70], offset: 4 }, // ....ftyp
+]
+
+function detectMimeFromBytes(buf: Uint8Array): string | null {
+  for (const sig of MAGIC_BYTES) {
+    const off = sig.offset ?? 0
+    if (buf.length < off + sig.bytes.length) continue
+    if (sig.bytes.every((b, i) => buf[off + i] === b)) return sig.mime
+  }
+  return null
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: { room_id: string } }
@@ -70,13 +86,16 @@ export async function POST(
     return NextResponse.json({ error: 'No file provided' }, { status: 400 })
   }
 
-  // Validate file
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    return NextResponse.json({ error: `Unsupported file type: ${file.type}` }, { status: 400 })
-  }
-
+  // Validate file size before reading content
   if (file.size > MAX_FILE_SIZE) {
     return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 400 })
+  }
+
+  // Read buffer and validate by magic bytes — never trust client-supplied MIME type
+  const buffer = await file.arrayBuffer()
+  const detectedMime = detectMimeFromBytes(new Uint8Array(buffer))
+  if (!detectedMime || !ALLOWED_TYPES.includes(detectedMime)) {
+    return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 })
   }
 
   const widthStr = formData.get('width')
@@ -84,25 +103,22 @@ export async function POST(
   const width = widthStr ? parseInt(String(widthStr), 10) : null
   const height = heightStr ? parseInt(String(heightStr), 10) : null
 
-  // Generate photo ID and storage path
+  // Generate photo ID and storage path — use detected MIME, not client-supplied
   const photoId = crypto.randomUUID()
-  const ext = file.type === 'image/jpeg' ? 'jpg'
-    : file.type === 'image/png' ? 'png'
-    : file.type === 'image/webp' ? 'webp'
+  const ext = detectedMime === 'image/jpeg' ? 'jpg'
+    : detectedMime === 'image/png' ? 'png'
+    : detectedMime === 'image/webp' ? 'webp'
     : 'heic'
   const storagePath = `rooms/${roomId}/${photoId}.${ext}`
-
-  // Upload to storage
-  const buffer = await file.arrayBuffer()
   const { error: uploadError } = await admin.storage
     .from('photos')
     .upload(storagePath, buffer, {
-      contentType: file.type,
+      contentType: detectedMime,
       upsert: false,
     })
 
   if (uploadError) {
-    return NextResponse.json({ error: `Storage upload failed: ${uploadError.message}` }, { status: 500 })
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
   }
 
   // Get public URL (signed, since bucket is private)
@@ -118,7 +134,7 @@ export async function POST(
     public_url: publicUrl,
     file_name: file.name,
     file_size: file.size,
-    mime_type: file.type,
+    mime_type: detectedMime,
     status: 'pending',
   }
   if (width !== null && !isNaN(width)) insertData['width'] = width
@@ -131,9 +147,8 @@ export async function POST(
     .single()
 
   if (insertError) {
-    // Rollback storage upload
     await admin.storage.from('photos').remove([storagePath])
-    return NextResponse.json({ error: insertError.message }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to save photo' }, { status: 500 })
   }
 
   // Increment upload_count on room (best-effort via RPC or raw SQL increment)

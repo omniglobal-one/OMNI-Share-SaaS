@@ -3,10 +3,19 @@ import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supab
 import { insertAuditLog } from '@/lib/audit'
 import type { ActionResult } from '@/types'
 
+async function assertRoomOwnerOrAdmin(userId: string, roomId: string): Promise<boolean> {
+  const admin = createServiceRoleClient()
+  const { data: profile } = await admin.from('profiles').select('role').eq('id', userId).single()
+  if (profile?.role === 'admin') return true
+  const { data: room } = await admin.from('rooms').select('owner_id').eq('id', roomId).single()
+  return room?.owner_id === userId
+}
+
 export async function assignModerator(roomId: string, username: string): Promise<ActionResult> {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not authenticated' }
+  if (!await assertRoomOwnerOrAdmin(user.id, roomId)) return { success: false, error: 'Insufficient permissions' }
 
   const admin = createServiceRoleClient()
 
@@ -34,6 +43,7 @@ export async function removeModerator(roomId: string, moderatorId: string): Prom
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not authenticated' }
+  if (!await assertRoomOwnerOrAdmin(user.id, roomId)) return { success: false, error: 'Insufficient permissions' }
 
   const admin = createServiceRoleClient()
   const { error } = await admin.from('room_moderators').delete().eq('room_id', roomId).eq('moderator_id', moderatorId)

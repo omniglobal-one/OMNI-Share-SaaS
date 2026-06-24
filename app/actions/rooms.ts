@@ -53,6 +53,13 @@ export async function createRoom(formData: {
   return { success: true, data: room.id }
 }
 
+async function assertRoomOwner(userId: string, roomId: string, role: string): Promise<boolean> {
+  if (role === 'admin') return true
+  const admin = createServiceRoleClient()
+  const { data: room } = await admin.from('rooms').select('owner_id').eq('id', roomId).single()
+  return room?.owner_id === userId
+}
+
 export async function updateRoom(roomId: string, formData: {
   name?: string
   description?: string
@@ -68,6 +75,9 @@ export async function updateRoom(roomId: string, formData: {
   const { data: profile } = await supabase.from('profiles').select('role, is_suspended').eq('id', user.id).single()
   if (!profile) return { success: false, error: 'Profile not found' }
   if (profile.is_suspended) return { success: false, error: 'Your account is suspended' }
+  if (!await assertRoomOwner(user.id, roomId, profile.role)) {
+    return { success: false, error: 'Insufficient permissions' }
+  }
 
   const updateData: Record<string, unknown> = {}
   if (formData.name !== undefined) updateData['name'] = formData.name
@@ -79,7 +89,7 @@ export async function updateRoom(roomId: string, formData: {
 
   const admin = createServiceRoleClient()
   const { error } = await admin.from('rooms').update(updateData).eq('id', roomId)
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to update room' }
 
   await insertAuditLog({ actorId: user.id, action: 'room.update', targetType: 'room', targetId: roomId })
 
@@ -91,9 +101,15 @@ export async function archiveRoom(roomId: string): Promise<ActionResult> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not authenticated' }
 
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (!profile) return { success: false, error: 'Profile not found' }
+  if (!await assertRoomOwner(user.id, roomId, profile.role)) {
+    return { success: false, error: 'Insufficient permissions' }
+  }
+
   const admin = createServiceRoleClient()
   const { error } = await admin.from('rooms').update({ status: 'archived' }).eq('id', roomId)
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to archive room' }
 
   await insertAuditLog({ actorId: user.id, action: 'room.archive', targetType: 'room', targetId: roomId })
 
@@ -129,12 +145,18 @@ export async function regenerateJoinCode(roomId: string): Promise<ActionResult<s
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not authenticated' }
 
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (!profile) return { success: false, error: 'Profile not found' }
+  if (!await assertRoomOwner(user.id, roomId, profile.role)) {
+    return { success: false, error: 'Insufficient permissions' }
+  }
+
   const admin = createServiceRoleClient()
   const newCode = await generateUniqueJoinCode(admin).catch(() => null)
   if (!newCode) return { success: false, error: 'Failed to generate join code' }
 
   const { error } = await admin.from('rooms').update({ join_code: newCode }).eq('id', roomId)
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to regenerate join code' }
 
   await insertAuditLog({ actorId: user.id, action: 'room.regenerate_code', targetType: 'room', targetId: roomId })
 
