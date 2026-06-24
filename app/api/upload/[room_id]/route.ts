@@ -22,8 +22,10 @@ function detectMimeFromBytes(buf: Uint8Array): string | null {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { room_id: string } }
+  { params }: { params: Promise<{ room_id: string }> }
 ) {
+  const { room_id } = await params
+
   // Auth check
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -42,7 +44,7 @@ export async function POST(
   }
 
   const admin = createServiceRoleClient()
-  const roomId = params.room_id
+  const roomId = room_id
 
   // Check membership
   const { data: member } = await admin

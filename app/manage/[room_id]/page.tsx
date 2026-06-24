@@ -37,9 +37,12 @@ export default async function ManageRoomPage({
   params,
   searchParams,
 }: {
-  params: { room_id: string }
-  searchParams: { tab?: string }
+  params: Promise<{ room_id: string }>
+  searchParams: Promise<{ tab?: string }>
 }) {
+  const { room_id } = await params
+  const { tab } = await searchParams
+
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -52,18 +55,18 @@ export default async function ManageRoomPage({
   const role = (profile as Profile).role
   if (role !== 'admin' && role !== 'manager') redirect('/rooms')
 
-  const { data: room } = await admin.from('rooms').select('*').eq('id', params.room_id).single()
+  const { data: room } = await admin.from('rooms').select('*').eq('id', room_id).single()
   if (!room) notFound()
 
-  const activeTab = (['overview', 'photos', 'moderators', 'settings'].includes(searchParams.tab ?? '')
-    ? searchParams.tab
+  const activeTab = (['overview', 'photos', 'moderators', 'settings'].includes(tab ?? '')
+    ? tab
     : 'overview') as ManageTab
 
   const [{ data: photos }, { data: mods }, { count: memberCount }, { data: auditLogs }] = await Promise.all([
-    admin.from('photos').select('*, moderator:profiles!moderated_by(id, full_name)').eq('room_id', params.room_id).order('uploaded_at', { ascending: false }),
-    admin.from('room_moderators').select('*, profiles(*)').eq('room_id', params.room_id),
-    admin.from('room_members').select('id', { count: 'exact', head: true }).eq('room_id', params.room_id),
-    admin.from('audit_logs').select('*').eq('target_id', params.room_id).order('created_at', { ascending: false }).limit(20),
+    admin.from('photos').select('*, moderator:profiles!moderated_by(id, full_name)').eq('room_id', room_id).order('uploaded_at', { ascending: false }),
+    admin.from('room_moderators').select('*, profiles(*)').eq('room_id', room_id),
+    admin.from('room_members').select('id', { count: 'exact', head: true }).eq('room_id', room_id),
+    admin.from('audit_logs').select('*').eq('target_id', room_id).order('created_at', { ascending: false }).limit(20),
   ])
 
   // Resolve actor names for audit log entries
@@ -77,7 +80,7 @@ export default async function ManageRoomPage({
     (actorProfiles ?? []).map(p => [p.id, (p.full_name ?? p.username ?? null)]).filter(([, v]) => v)
   )
 
-  const baseUrl = `/manage/${params.room_id}`
+  const baseUrl = `/manage/${room_id}`
   const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3000'
 
   const subNavItems = [

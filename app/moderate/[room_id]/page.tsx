@@ -6,7 +6,9 @@ import { Topbar } from '@/components/dashboard/Topbar'
 import { ModerationClient } from './ModerationClient'
 import type { Profile, Room, Photo } from '@/types'
 
-export default async function ModeratePage({ params }: { params: { room_id: string } }) {
+export default async function ModeratePage({ params }: { params: Promise<{ room_id: string }> }) {
+  const { room_id } = await params
+
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -21,8 +23,8 @@ export default async function ModeratePage({ params }: { params: { room_id: stri
   if (!canModerate) redirect('/rooms')
 
   const [{ data: room }, { data: pendingPhotos }] = await Promise.all([
-    admin.from('rooms').select('*').eq('id', params.room_id).single(),
-    admin.from('photos').select('*').eq('room_id', params.room_id).eq('status', 'pending').order('uploaded_at', { ascending: true }),
+    admin.from('rooms').select('*').eq('id', room_id).single(),
+    admin.from('photos').select('*').eq('room_id', room_id).eq('status', 'pending').order('uploaded_at', { ascending: true }),
   ])
 
   if (!room) notFound()

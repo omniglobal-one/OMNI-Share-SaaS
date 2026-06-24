@@ -8,7 +8,9 @@ import { WallGate } from '@/components/wall/WallGate'
 import Link from 'next/link'
 import type { Profile, Room, Photo } from '@/types'
 
-export default async function RoomPage({ params }: { params: { id: string } }) {
+export default async function RoomPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -18,7 +20,7 @@ export default async function RoomPage({ params }: { params: { id: string } }) {
   const { data: profile } = await admin.from('profiles').select('*').eq('id', user.id).single()
   if (!profile) redirect('/join')
 
-  const { data: room } = await admin.from('rooms').select('*').eq('id', params.id).single()
+  const { data: room } = await admin.from('rooms').select('*').eq('id', id).single()
   if (!room) notFound()
 
   const isAdmin = (profile as Profile).role === 'admin'
@@ -26,7 +28,7 @@ export default async function RoomPage({ params }: { params: { id: string } }) {
     const { data: member } = await admin
       .from('room_members')
       .select('id')
-      .eq('room_id', params.id)
+      .eq('room_id', id)
       .eq('user_id', user.id)
       .single()
 
@@ -38,14 +40,14 @@ export default async function RoomPage({ params }: { params: { id: string } }) {
   const { data: approvedPhotos } = await admin
     .from('photos')
     .select('*')
-    .eq('room_id', params.id)
+    .eq('room_id', id)
     .eq('status', 'approved')
     .order('uploaded_at', { ascending: false })
 
   const { data: myPhotos } = await admin
     .from('photos')
     .select('*')
-    .eq('room_id', params.id)
+    .eq('room_id', id)
     .eq('uploader_id', user.id)
     .order('uploaded_at', { ascending: false })
 

@@ -3,13 +3,14 @@ import { createServiceRoleClient } from '@/lib/supabase/server'
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const supabase = createServiceRoleClient()
   const { data, error } = await supabase
     .from('photos')
     .select('id, public_url, width, height, uploaded_at')
-    .eq('room_id', params.id)
+    .eq('room_id', id)
     .eq('status', 'approved')
     .order('uploaded_at', { ascending: false })
 

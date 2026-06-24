@@ -3,13 +3,14 @@ import { notFound } from 'next/navigation'
 import { WallDisplay } from './WallDisplay'
 import type { Photo, Room } from '@/types'
 
-export default async function WallPage({ params }: { params: { id: string } }) {
+export default async function WallPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = createServiceRoleClient()
 
   const { data: room } = await supabase
     .from('rooms')
     .select('id, name, join_code, status')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!room) notFound()
@@ -17,7 +18,7 @@ export default async function WallPage({ params }: { params: { id: string } }) {
   const { data: photos } = await supabase
     .from('photos')
     .select('*')
-    .eq('room_id', params.id)
+    .eq('room_id', id)
     .eq('status', 'approved')
     .order('uploaded_at', { ascending: false })
 

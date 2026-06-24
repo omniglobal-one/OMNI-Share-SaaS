@@ -3,13 +3,14 @@ import { createServiceRoleClient } from '@/lib/supabase/server'
 
 export async function GET(
   _request: Request,
-  { params }: { params: { code: string } }
+  { params }: { params: Promise<{ code: string }> }
 ) {
+  const { code } = await params
   const supabase = createServiceRoleClient()
   const { data, error } = await supabase
     .from('rooms')
     .select('id, name, status, join_code, banner_url, description')
-    .eq('join_code', params.code.toUpperCase())
+    .eq('join_code', code.toUpperCase())
     .single()
 
   if (error || !data) {
