@@ -84,7 +84,7 @@ export function JoinClient() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icon.png" alt="" className="w-6 h-6 rounded" />
           </div>
-          <span className="text-xl font-bold text-text-primary">OMNI Wall</span>
+          <span className="text-xl font-bold text-text-primary">OMNI Share</span>
         </div>
 
         <h1 className="text-3xl font-bold text-text-primary mb-2">Join a room</h1>

@@ -47,7 +47,7 @@ export function Navbar({ profile, roomName }: NavbarProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </div>
-        <span className="font-semibold text-text-primary dark:text-dark-text-primary">OMNI Wall</span>
+        <span className="font-semibold text-text-primary dark:text-dark-text-primary">OMNI Share</span>
       </Link>
 
       {/* Room context */}

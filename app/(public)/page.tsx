@@ -11,7 +11,7 @@ export default function LandingPage() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icon.png" alt="" className="w-6 h-6 rounded" />
           </div>
-          <span className="text-lg font-bold text-text-primary">OMNI Wall</span>
+          <span className="text-lg font-bold text-text-primary">OMNI Share</span>
         </div>
       </header>
 
@@ -209,9 +209,9 @@ export default function LandingPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/icon.png" alt="" className="w-4 h-4 rounded" />
             </div>
-            <span className="text-sm font-semibold text-text-secondary">OMNI Wall</span>
+            <span className="text-sm font-semibold text-text-secondary">OMNI Share</span>
           </div>
-          <p className="text-text-tertiary text-sm">© {new Date().getFullYear()} OMNI Wall. All rights reserved.</p>
+          <p className="text-text-tertiary text-sm">© {new Date().getFullYear()} OMNI Share. All rights reserved.</p>
         </div>
       </footer>
     </div>

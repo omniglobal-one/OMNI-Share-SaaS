@@ -34,7 +34,7 @@ export default function RegisterPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/icon.png" alt="" className="w-6 h-6 rounded" />
             </div>
-            <span className="text-xl font-bold text-text-primary">OMNI Wall</span>
+            <span className="text-xl font-bold text-text-primary">OMNI Share</span>
           </div>
           <h1 className="text-2xl font-semibold text-text-primary">Create your account</h1>
           <p className="text-text-secondary mt-1 text-sm">

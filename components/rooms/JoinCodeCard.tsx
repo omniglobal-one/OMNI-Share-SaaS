@@ -8,17 +8,22 @@ interface JoinCodeCardProps {
   roomId: string
   joinCode: string
   appUrl: string
+  roomId2?: string
 }
 
-export function JoinCodeCard({ roomId, joinCode, appUrl }: JoinCodeCardProps) {
+type QrMode = 'join' | 'wall'
+
+export function JoinCodeCard({ roomId, joinCode, appUrl, roomId2 }: JoinCodeCardProps) {
   const [code, setCode] = useState(joinCode)
   const [copied, setCopied] = useState(false)
   const [regenerating, setRegenerating] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [showQr, setShowQr] = useState(false)
+  const [qrMode, setQrMode] = useState<QrMode>('join')
   const [error, setError] = useState<string | null>(null)
 
   const joinUrl = `${appUrl}/join?code=${code}`
+  const wallUrl = `${appUrl}/room/${roomId2 ?? roomId}/wall`
 
   async function handleCopy() {
     await navigator.clipboard.writeText(code)
@@ -47,14 +52,12 @@ export function JoinCodeCard({ roomId, joinCode, appUrl }: JoinCodeCardProps) {
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
           </svg>
-          QR Code
+          QR Codes
         </button>
       </div>
 
       <div className="flex items-center gap-4 mb-4">
-        <span className="font-mono text-4xl font-bold tracking-[0.3em] text-text-primary">
-          {code}
-        </span>
+        <span className="font-mono text-4xl font-bold tracking-[0.3em] text-text-primary">{code}</span>
         <button onClick={handleCopy} className="btn-secondary py-2">
           {copied ? (
             <svg className="w-5 h-5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -69,17 +72,11 @@ export function JoinCodeCard({ roomId, joinCode, appUrl }: JoinCodeCardProps) {
         </button>
       </div>
 
-      <p className="text-text-tertiary text-sm mb-4 font-mono">
-        {joinUrl}
-      </p>
+      <p className="text-text-tertiary text-sm mb-4 font-mono">{joinUrl}</p>
 
       {error && <p className="text-danger text-sm mb-3">{error}</p>}
 
-      <button
-        onClick={() => setShowConfirm(true)}
-        className="btn-secondary text-sm"
-        disabled={regenerating}
-      >
+      <button onClick={() => setShowConfirm(true)} className="btn-secondary text-sm" disabled={regenerating}>
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
@@ -87,17 +84,38 @@ export function JoinCodeCard({ roomId, joinCode, appUrl }: JoinCodeCardProps) {
       </button>
 
       {showQr && (
-        <div className="mt-4 pt-4 border-t border-bg-border flex justify-center">
-          <QRCode value={joinUrl} size={180} />
+        <div className="mt-4 pt-4 border-t border-bg-border">
+          {/* Tab toggle */}
+          <div className="flex gap-1 p-1 bg-bg-base rounded-lg mb-4">
+            <button
+              onClick={() => setQrMode('join')}
+              className={`flex-1 text-sm py-1.5 rounded-md font-medium transition-colors ${qrMode === 'join' ? 'bg-white shadow-sm text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+            >
+              Guest join
+            </button>
+            <button
+              onClick={() => setQrMode('wall')}
+              className={`flex-1 text-sm py-1.5 rounded-md font-medium transition-colors ${qrMode === 'wall' ? 'bg-white shadow-sm text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
+            >
+              Wall display
+            </button>
+          </div>
+
+          <div className="flex flex-col items-center gap-2">
+            <QRCode value={qrMode === 'join' ? joinUrl : wallUrl} size={180} />
+            <p className="text-text-tertiary text-xs font-mono text-center break-all">
+              {qrMode === 'join' ? joinUrl : wallUrl}
+            </p>
+            <p className="text-text-tertiary text-xs">
+              {qrMode === 'join'
+                ? 'Guests scan this to join and upload photos'
+                : 'Scan to open the live photo wall'}
+            </p>
+          </div>
         </div>
       )}
 
-      <Modal
-        open={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        title="Regenerate join code?"
-        size="sm"
-      >
+      <Modal open={showConfirm} onClose={() => setShowConfirm(false)} title="Regenerate join code?" size="sm">
         <p className="text-text-secondary text-sm mb-4">
           The old code will stop working immediately. Anyone with the old link won&apos;t be able to join.
         </p>

@@ -72,7 +72,7 @@ export function WallGate({ joinCode, roomName, bypass = false, children }: WallG
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/icon.png" alt="" className="w-7 h-7 rounded-lg" />
         </div>
-        <span className="text-white text-xl font-bold">OMNI Wall</span>
+        <span className="text-white text-xl font-bold">OMNI Share</span>
       </div>
 
       <div className="w-full max-w-sm text-center">

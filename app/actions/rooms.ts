@@ -58,6 +58,8 @@ export async function updateRoom(roomId: string, formData: {
   description?: string
   bannerUrl?: string
   maxUploadsPerUser?: number
+  wallColors?: { bg: string; text: string; accent: string }
+  socialLinks?: Array<{ platform: string; label: string; url: string; display_order: number }>
 }): Promise<ActionResult> {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -72,6 +74,8 @@ export async function updateRoom(roomId: string, formData: {
   if (formData.description !== undefined) updateData['description'] = formData.description
   if (formData.bannerUrl !== undefined) updateData['banner_url'] = formData.bannerUrl
   if (formData.maxUploadsPerUser !== undefined) updateData['max_uploads_per_user'] = formData.maxUploadsPerUser
+  if (formData.wallColors !== undefined) updateData['wall_colors'] = formData.wallColors
+  if (formData.socialLinks !== undefined) updateData['social_links'] = formData.socialLinks
 
   const admin = createServiceRoleClient()
   const { error } = await admin.from('rooms').update(updateData).eq('id', roomId)

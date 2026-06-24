@@ -1,17 +1,22 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
-import type { Photo } from '@/types'
+import type { Photo, WallColors } from '@/types'
 
 interface SlideshowPlayerProps {
   photos: Photo[]
   roomName: string
   joinCode: string
+  colors?: WallColors
   onExit: () => void
 }
 
-export function SlideshowPlayer({ photos, roomName, joinCode, onExit }: SlideshowPlayerProps) {
+export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: SlideshowPlayerProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [visible, setVisible] = useState(true)
+
+  const bg = colors?.bg ?? '#000000'
+  const textColor = colors?.text ?? '#FFFFFF'
+  const accent = colors?.accent ?? '#2563EB'
 
   const advance = useCallback(() => {
     if (photos.length <= 1) return
@@ -40,25 +45,25 @@ export function SlideshowPlayer({ photos, roomName, joinCode, onExit }: Slidesho
 
   if (!photo || photos.length === 0) {
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center z-50" onClick={onExit}>
-        <p className="text-white/50 text-xl">No photos to display</p>
+      <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: bg }} onClick={onExit}>
+        <p className="text-xl" style={{ color: `${textColor}60` }}>No photos to display</p>
       </div>
     )
   }
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col" onClick={onExit}>
+    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: bg }} onClick={onExit}>
 
       {/* Top bar */}
       <div className="flex items-center justify-between px-8 pt-6 pb-2 flex-shrink-0">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-white/40 text-sm font-medium">Live wall</span>
+          <span className="text-sm font-medium" style={{ color: `${textColor}60` }}>Live wall</span>
         </div>
-        <p className="text-white/30 text-sm">Press Esc or click to exit</p>
+        <p className="text-sm" style={{ color: `${textColor}40` }}>Press Esc or click to exit</p>
       </div>
 
-      {/* Image area — padded so the photo never touches the edges */}
+      {/* Image area */}
       <div className="flex-1 flex items-center justify-center px-16 py-6 min-h-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -66,20 +71,17 @@ export function SlideshowPlayer({ photos, roomName, joinCode, onExit }: Slidesho
           src={photo.public_url}
           alt={photo.file_name ?? ''}
           className="max-h-full max-w-full object-contain rounded-lg shadow-2xl"
-          style={{
-            opacity: visible ? 1 : 0,
-            transition: 'opacity 400ms ease-in-out',
-          }}
+          style={{ opacity: visible ? 1 : 0, transition: 'opacity 400ms ease-in-out' }}
         />
       </div>
 
-      {/* Bottom info bar — clearly separated from the image */}
+      {/* Bottom info bar */}
       <div className="flex items-end justify-between px-8 pt-2 pb-6 flex-shrink-0">
         <div>
-          <p className="text-white font-bold text-2xl leading-tight">{roomName}</p>
-          <p className="text-white/50 font-mono text-base tracking-widest mt-0.5">{joinCode}</p>
+          <p className="font-bold text-2xl leading-tight" style={{ color: textColor }}>{roomName}</p>
+          <p className="font-mono text-base tracking-widest mt-0.5" style={{ color: accent }}>{joinCode}</p>
         </div>
-        <p className="text-white/30 text-sm pb-1">{currentIndex + 1} / {photos.length}</p>
+        <p className="text-sm pb-1" style={{ color: `${textColor}40` }}>{currentIndex + 1} / {photos.length}</p>
       </div>
     </div>
   )

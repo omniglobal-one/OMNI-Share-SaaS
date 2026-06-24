@@ -12,7 +12,7 @@ export default function LoginPage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/icon.png" alt="" className="w-6 h-6 rounded" />
             </div>
-            <span className="text-xl font-bold text-text-primary">OMNI Wall</span>
+            <span className="text-xl font-bold text-text-primary">OMNI Share</span>
           </div>
           <h1 className="text-2xl font-semibold text-text-primary">Welcome back</h1>
           <p className="text-text-secondary mt-1">Sign in to your account to continue</p>
@@ -28,7 +28,7 @@ export default function LoginPage() {
           Don&apos;t have an account?{' '}
           <Link href="/register" className="text-text-primary font-medium hover:underline">Create one</Link>
         </p>
-        <p className="text-center text-text-tertiary text-sm mt-2">OMNI Wall — Real-time photo sharing platform</p>
+        <p className="text-center text-text-tertiary text-sm mt-2">OMNI Share — Real-time photo sharing platform</p>
         <p className="text-center text-xs text-text-tertiary mt-2">
           <Link href="/privacy" className="hover:underline">Privacy Policy &amp; Terms of Use</Link>
         </p>

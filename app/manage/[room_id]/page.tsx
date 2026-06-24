@@ -23,7 +23,7 @@ export default async function ManageRoomPage({ params }: { params: { room_id: st
   if (!room) notFound()
 
   const [{ data: photos }, { data: mods }, { count: memberCount }, { data: auditLogs }] = await Promise.all([
-    admin.from('photos').select('*').eq('room_id', params.room_id).order('uploaded_at', { ascending: false }),
+    admin.from('photos').select('*, moderator:profiles!moderated_by(id, full_name)').eq('room_id', params.room_id).order('uploaded_at', { ascending: false }),
     admin.from('room_moderators').select('*, profiles(*)').eq('room_id', params.room_id),
     admin.from('room_members').select('id', { count: 'exact', head: true }).eq('room_id', params.room_id),
     admin.from('audit_logs').select('*').eq('target_id', params.room_id).order('created_at', { ascending: false }).limit(20),

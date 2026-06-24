@@ -43,7 +43,7 @@ export function DashboardShell({ sidebar, children }: DashboardShellProps) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icon.png" alt="" className="w-4 h-4 rounded" />
           </div>
-          <span className="font-bold text-text-primary text-sm">OMNI Wall</span>
+          <span className="font-bold text-text-primary text-sm">OMNI Share</span>
         </div>
 
         <main className="flex-1 overflow-y-auto">

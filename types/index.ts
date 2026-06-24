@@ -13,6 +13,19 @@ export interface Profile {
   updated_at: string
 }
 
+export interface WallColors {
+  bg: string
+  text: string
+  accent: string
+}
+
+export interface SocialLink {
+  platform: string
+  label: string
+  url: string
+  display_order: number
+}
+
 export interface Room {
   id: string
   name: string
@@ -25,6 +38,8 @@ export interface Room {
   upload_count: number
   approved_count: number
   max_uploads_per_user: number
+  wall_colors: WallColors | null
+  social_links: SocialLink[]
   created_at: string
   updated_at: string
 }

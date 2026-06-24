@@ -93,7 +93,7 @@ export function Sidebar({ role, userEmail, userName }: SidebarProps) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icon.png" alt="" className="w-5 h-5 rounded" />
           </div>
-          <span className="font-bold text-text-primary text-sm">OMNI Wall</span>
+          <span className="font-bold text-text-primary text-sm">OMNI Share</span>
         </div>
       </div>
 
