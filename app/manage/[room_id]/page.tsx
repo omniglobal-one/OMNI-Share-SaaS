@@ -4,6 +4,7 @@ import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Topbar } from '@/components/dashboard/Topbar'
 import { ManageTabs } from './ManageTabs'
+import { Badge } from '@/components/ui/Badge'
 import type { Profile, Room, Photo, AuditLog } from '@/types'
 
 type ManageTab = 'overview' | 'photos' | 'moderators' | 'settings'
@@ -87,7 +88,7 @@ export default async function ManageRoomPage({
     }>
       <Topbar
         title={room.name}
-        subtitle="Room management"
+        subtitle={<><span className="text-text-secondary text-sm">Room management</span><Badge variant={room.status as 'active' | 'archived'} /></>}
       />
       <ManageTabs
         room={room as Room}

@@ -165,10 +165,6 @@ export function ManageTabs({ room, photos, moderators, memberCount, auditLogs, u
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6">
-      <div className="flex items-center gap-3 mb-6">
-        <Badge variant={roomData.status} />
-      </div>
-
       <div>
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
