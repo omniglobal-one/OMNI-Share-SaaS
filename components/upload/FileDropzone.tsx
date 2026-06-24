@@ -1,5 +1,5 @@
 'use client'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import type { UploadFile } from '@/types'
 
 interface FileDropzoneProps {
@@ -46,6 +46,7 @@ async function processFiles(fileList: FileList | File[]): Promise<UploadFile[]> 
 
 export function FileDropzone({ onFiles, disabled }: FileDropzoneProps) {
   const [dragging, setDragging] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const handleFiles = useCallback(async (fileList: FileList | File[]) => {
     const processed = await processFiles(fileList)
@@ -71,9 +72,10 @@ export function FileDropzone({ onFiles, disabled }: FileDropzoneProps) {
     <div
       className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-colors cursor-pointer ${
         dragging
-          ? 'border-primary bg-primary/5 bg-blue-50'
+          ? 'border-primary bg-primary/5'
           : 'border-bg-border hover:border-primary/50'
       } ${disabled ? 'opacity-50 pointer-events-none' : ''}`}
+      onClick={() => inputRef.current?.click()}
       onDragEnter={e => { e.preventDefault(); setDragging(true) }}
       onDragOver={e => { e.preventDefault() }}
       onDragLeave={e => {
@@ -84,10 +86,11 @@ export function FileDropzone({ onFiles, disabled }: FileDropzoneProps) {
       onDrop={onDrop}
     >
       <input
+        ref={inputRef}
         type="file"
         accept={ACCEPTED_TYPES.join(',')}
         multiple
-        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+        className="hidden"
         onChange={onInputChange}
         disabled={disabled}
       />
