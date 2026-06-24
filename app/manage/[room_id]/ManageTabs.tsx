@@ -204,8 +204,33 @@ export function ManageTabs({ room, photos, moderators, memberCount, auditLogs, a
     rejected: photoList.filter(p => p.status === 'rejected').length,
   }
 
-  async function handleModerate(photoId: string, status: 'approved' | 'rejected') {
-    const result = await moderatePhoto(photoId, status)
+  // Rejection reason modal
+  const [rejectTarget, setRejectTarget] = useState<string | null>(null)
+  const [rejectReason, setRejectReason] = useState('')
+  const [rejecting, setRejecting] = useState(false)
+
+  function openRejectModal(photoId: string) {
+    setRejectTarget(photoId)
+    setRejectReason('')
+  }
+
+  async function confirmReject() {
+    if (!rejectTarget) return
+    setRejecting(true)
+    const result = await moderatePhoto(rejectTarget, 'rejected', rejectReason.trim() || undefined)
+    setRejecting(false)
+    if (result.success) {
+      setPhotoList(prev => prev.map(p => p.id === rejectTarget ? { ...p, status: 'rejected' } : p))
+      setRejectTarget(null)
+    }
+  }
+
+  async function handleModerate(photoId: string, status: 'approved' | 'rejected', reason?: string) {
+    if (status === 'rejected' && reason === undefined) {
+      openRejectModal(photoId)
+      return
+    }
+    const result = await moderatePhoto(photoId, status, reason)
     if (result.success) {
       setPhotoList(prev => prev.map(p => p.id === photoId ? { ...p, status } : p))
     }
@@ -541,6 +566,25 @@ export function ManageTabs({ room, photos, moderators, memberCount, auditLogs, a
           </form>
         )}
       </div>
+
+      <Modal open={rejectTarget !== null} onClose={() => setRejectTarget(null)} title="Reject photo" size="sm">
+        <p className="text-text-secondary text-sm mb-4">Optionally add a reason — this is stored on the photo and shown in the activity feed.</p>
+        <textarea
+          className="input resize-none mb-4"
+          rows={3}
+          placeholder="e.g. Blurry image, Inappropriate content…"
+          value={rejectReason}
+          onChange={e => setRejectReason(e.target.value)}
+          autoFocus
+          maxLength={200}
+        />
+        <div className="flex gap-2">
+          <button onClick={confirmReject} className="btn-danger flex-1" disabled={rejecting}>
+            {rejecting ? 'Rejecting…' : 'Reject photo'}
+          </button>
+          <button onClick={() => setRejectTarget(null)} className="btn-secondary">Cancel</button>
+        </div>
+      </Modal>
 
       {lightboxIndex !== null && (
         <PhotoLightbox
