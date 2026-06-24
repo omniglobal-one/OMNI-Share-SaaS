@@ -568,14 +568,36 @@ export function ManageTabs({ room, photos, moderators, memberCount, auditLogs, a
       </div>
 
       <Modal open={rejectTarget !== null} onClose={() => setRejectTarget(null)} title="Reject photo" size="sm">
-        <p className="text-text-secondary text-sm mb-4">Optionally add a reason — this is stored on the photo and shown in the activity feed.</p>
+        <p className="text-text-secondary text-sm mb-3">Select a reason or write your own.</p>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {[
+            'Blurry or low quality',
+            'Inappropriate content',
+            'Off topic',
+            'Duplicate photo',
+            'Wrong event',
+            'Poor lighting',
+          ].map(preset => (
+            <button
+              key={preset}
+              type="button"
+              onClick={() => setRejectReason(preset)}
+              className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                rejectReason === preset
+                  ? 'bg-danger/10 border-danger text-danger font-medium'
+                  : 'border-bg-border text-text-secondary hover:border-text-tertiary hover:text-text-primary'
+              }`}
+            >
+              {preset}
+            </button>
+          ))}
+        </div>
         <textarea
           className="input resize-none mb-4"
-          rows={3}
-          placeholder="e.g. Blurry image, Inappropriate content…"
+          rows={2}
+          placeholder="Or type a custom reason…"
           value={rejectReason}
           onChange={e => setRejectReason(e.target.value)}
-          autoFocus
           maxLength={200}
         />
         <div className="flex gap-2">
