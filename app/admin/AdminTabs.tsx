@@ -201,11 +201,11 @@ export function AdminTabs({ users: initialUsers, rooms: initialRooms, auditLogs,
                           {u.id !== currentUserId && (
                             <>
                               {u.is_suspended ? (
-                                <button onClick={() => handleUnsuspend(u.id)} className="text-success text-xs hover:underline">Unsuspend</button>
+                                <button onClick={() => handleUnsuspend(u.id)} className="btn-success text-xs py-1 px-2">Unsuspend</button>
                               ) : (
-                                <button onClick={() => handleSuspend(u.id)} className="text-amber-600 text-xs hover:underline">Suspend</button>
+                                <button onClick={() => handleSuspend(u.id)} className="btn-secondary text-xs py-1 px-2">Suspend</button>
                               )}
-                              <button onClick={() => handleDeleteUser(u.id)} className="text-danger text-xs hover:underline">Delete</button>
+                              <button onClick={() => handleDeleteUser(u.id)} className="btn-danger text-xs py-1 px-2">Delete</button>
                             </>
                           )}
                         </div>
@@ -243,9 +243,9 @@ export function AdminTabs({ users: initialUsers, rooms: initialRooms, auditLogs,
                     <td>
                       <div className="flex items-center gap-2">
                         {r.status === 'active' && (
-                          <button onClick={() => handleArchiveRoom(r.id)} className="text-amber-600 text-xs hover:underline">Archive</button>
+                          <button onClick={() => handleArchiveRoom(r.id)} className="btn-secondary text-xs py-1 px-2">Archive</button>
                         )}
-                        <button onClick={() => handleDeleteRoom(r.id, r.name)} className="text-danger text-xs hover:underline">Delete</button>
+                        <button onClick={() => handleDeleteRoom(r.id, r.name)} className="btn-danger text-xs py-1 px-2">Delete</button>
                       </div>
                     </td>
                   </tr>
