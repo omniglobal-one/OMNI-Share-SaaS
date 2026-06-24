@@ -1,12 +1,19 @@
 'use client'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Role } from '@/types'
 
 interface NavItem {
   label: string
   href: string
+  icon: React.ReactNode
+}
+
+export interface SubNavItem {
+  label: string
+  href: string
+  tab?: string
   icon: React.ReactNode
 }
 
@@ -70,10 +77,14 @@ interface SidebarProps {
   role: Role
   userEmail: string
   userName?: string | null
+  subNavLabel?: string
+  subNavItems?: SubNavItem[]
 }
 
-export function Sidebar({ role, userEmail, userName }: SidebarProps) {
+export function Sidebar({ role, userEmail, userName, subNavLabel, subNavItems }: SidebarProps) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const currentTab = searchParams.get('tab')
   const router = useRouter()
   const navItems = getNavItems(role)
 
@@ -121,6 +132,35 @@ export function Sidebar({ role, userEmail, userName }: SidebarProps) {
             </Link>
           )
         })}
+
+        {subNavItems && subNavItems.length > 0 && (
+          <div className="pt-3 mt-1 border-t border-bg-border space-y-0.5">
+            {subNavLabel && (
+              <p className="px-3 pb-1 text-xs font-semibold text-text-tertiary uppercase tracking-wider truncate">
+                {subNavLabel}
+              </p>
+            )}
+            {subNavItems.map((item) => {
+              const isActive = item.tab
+                ? currentTab === item.tab || (!currentTab && item.tab === 'overview')
+                : pathname === item.href
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors duration-150 ${
+                    isActive
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'text-text-secondary hover:text-text-primary hover:bg-bg-border'
+                  }`}
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              )
+            })}
+          </div>
+        )}
       </nav>
 
       {/* User info + sign out */}

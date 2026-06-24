@@ -1,7 +1,6 @@
 'use client'
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Tabs } from '@/components/ui/Tabs'
 import { Badge } from '@/components/ui/Badge'
 import { JoinCodeCard } from '@/components/rooms/JoinCodeCard'
 import { Modal } from '@/components/ui/Modal'
@@ -20,14 +19,8 @@ interface ManageTabsProps {
   auditLogs: AuditLog[]
   userRole: Role
   appUrl: string
+  activeTab: 'overview' | 'photos' | 'moderators' | 'settings'
 }
-
-const TABS = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'photos', label: 'Photos' },
-  { id: 'moderators', label: 'Moderators' },
-  { id: 'settings', label: 'Settings' },
-]
 
 type PhotoStatus = 'all' | 'pending' | 'approved' | 'rejected'
 
@@ -48,9 +41,8 @@ function getProfile(mod: { profiles: unknown }): { full_name: string | null; use
   return null
 }
 
-export function ManageTabs({ room, photos, moderators, memberCount, auditLogs, userRole, appUrl }: ManageTabsProps) {
+export function ManageTabs({ room, photos, moderators, memberCount, auditLogs, userRole, appUrl, activeTab }: ManageTabsProps) {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState('overview')
   const [statusFilter, setStatusFilter] = useState<PhotoStatus>('all')
   const [photoList, setPhotoList] = useState(photos)
   const [modList, setModList] = useState(moderators)
@@ -177,9 +169,7 @@ export function ManageTabs({ room, photos, moderators, memberCount, auditLogs, u
         <Badge variant={roomData.status} />
       </div>
 
-      <Tabs tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
-
-      <div className="mt-6">
+      <div>
         {/* OVERVIEW TAB */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
