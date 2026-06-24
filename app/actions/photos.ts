@@ -18,7 +18,7 @@ export async function moderatePhoto(
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
   if (!profile) return { success: false, error: 'Not authenticated' }
 
-  const { data: photo } = await admin.from('photos').select('id, room_id').eq('id', photoId).single()
+  const { data: photo } = await admin.from('photos').select('id, room_id, uploader_id').eq('id', photoId).single()
   if (!photo) return { success: false, error: 'Photo not found' }
 
   // Must be admin, room owner, or room moderator
@@ -43,7 +43,24 @@ export async function moderatePhoto(
 
   if (error) return { success: false, error: error.message }
 
-  await insertAuditLog({ actorId: user.id, action: `photo.${status}`, targetType: 'photo', targetId: photoId })
+  // Resolve uploader username for the audit log
+  const { data: uploader } = await admin
+    .from('profiles')
+    .select('username')
+    .eq('id', photo.uploader_id)
+    .single()
+
+  await insertAuditLog({
+    actorId: user.id,
+    action: `photo.${status}`,
+    targetType: 'room',
+    targetId: photo.room_id,
+    metadata: {
+      photoId,
+      ...(uploader?.username ? { uploader: uploader.username } : {}),
+      ...(status === 'rejected' && rejectionReason ? { reason: rejectionReason } : {}),
+    },
+  })
 
   return { success: true, data: undefined }
 }

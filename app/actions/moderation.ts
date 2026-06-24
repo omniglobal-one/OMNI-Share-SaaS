@@ -24,6 +24,12 @@ export async function approvePhoto(photoId: string, roomId: string): Promise<Act
   if (!allowed) return { success: false, error: 'Insufficient permissions' }
 
   const admin = createServiceRoleClient()
+
+  const { data: photo } = await admin.from('photos').select('uploader_id').eq('id', photoId).single()
+  const { data: uploader } = photo?.uploader_id
+    ? await admin.from('profiles').select('username').eq('id', photo.uploader_id).single()
+    : { data: null }
+
   const { error } = await admin.from('photos').update({
     status: 'approved',
     moderated_by: user.id,
@@ -32,10 +38,15 @@ export async function approvePhoto(photoId: string, roomId: string): Promise<Act
 
   if (error) return { success: false, error: error.message }
 
-  // Increment approved_count on room (best-effort)
   await Promise.resolve(admin.rpc('increment_approved_count', { room_id_param: roomId })).catch(() => {})
 
-  await insertAuditLog({ actorId: user.id, action: 'photo.approve', targetType: 'photo', targetId: photoId, metadata: { roomId } })
+  await insertAuditLog({
+    actorId: user.id,
+    action: 'photo.approved',
+    targetType: 'room',
+    targetId: roomId,
+    metadata: { photoId, ...(uploader?.username ? { uploader: uploader.username } : {}) },
+  })
 
   return { success: true, data: undefined }
 }
@@ -49,22 +60,32 @@ export async function rejectPhoto(photoId: string, roomId: string, reason?: stri
   if (!allowed) return { success: false, error: 'Insufficient permissions' }
 
   const admin = createServiceRoleClient()
+
+  const { data: photo } = await admin.from('photos').select('uploader_id').eq('id', photoId).single()
+  const { data: uploader } = photo?.uploader_id
+    ? await admin.from('profiles').select('username').eq('id', photo.uploader_id).single()
+    : { data: null }
+
   const updateData: Record<string, unknown> = {
     status: 'rejected',
     moderated_by: user.id,
     moderated_at: new Date().toISOString(),
+    ...(reason ? { rejection_reason: reason } : {}),
   }
-  if (reason) updateData['rejection_reason'] = reason
 
   const { error } = await admin.from('photos').update(updateData).eq('id', photoId)
   if (error) return { success: false, error: error.message }
 
   await insertAuditLog({
     actorId: user.id,
-    action: 'photo.reject',
-    targetType: 'photo',
-    targetId: photoId,
-    metadata: { roomId, ...(reason ? { reason } : {}) },
+    action: 'photo.rejected',
+    targetType: 'room',
+    targetId: roomId,
+    metadata: {
+      photoId,
+      ...(uploader?.username ? { uploader: uploader.username } : {}),
+      ...(reason ? { reason } : {}),
+    },
   })
 
   return { success: true, data: undefined }
