@@ -10,6 +10,7 @@ export function JoinClient() {
   const preCode = searchParams.get('code') ?? ''
   const [code, setCode] = useState(preCode.toUpperCase())
   const [displayName, setDisplayName] = useState('')
+  const [ageConfirmed, setAgeConfirmed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [authed, setAuthed] = useState<boolean | null>(null)
@@ -34,6 +35,11 @@ export function JoinClient() {
     const codeToUse = (joinCode ?? code).toUpperCase()
     if (codeToUse.length !== 6) {
       setError('Enter a 6-character code.')
+      return
+    }
+
+    if (authed === false && !ageConfirmed) {
+      setError('Please confirm you are 13 years of age or older to continue.')
       return
     }
 
@@ -121,19 +127,32 @@ export function JoinClient() {
           </div>
 
           {authed === false && (
-            <div className="mb-6">
-              <label className="label">Your name <span className="text-text-tertiary font-normal">(optional)</span></label>
-              <input
-                type="text"
-                className="input"
-                placeholder="e.g. Alice"
-                value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
-                maxLength={50}
-              />
-              <p className="text-xs text-text-tertiary mt-1.5">
-                Helps the moderator identify your photos. You can skip this.
-              </p>
+            <div className="mb-6 space-y-4">
+              <div>
+                <label className="label">Your name <span className="text-text-tertiary font-normal">(optional)</span></label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="e.g. Alice"
+                  value={displayName}
+                  onChange={e => setDisplayName(e.target.value)}
+                  maxLength={50}
+                />
+                <p className="text-xs text-text-tertiary mt-1.5">
+                  Helps the moderator identify your photos. You can skip this.
+                </p>
+              </div>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-bg-border text-primary focus:ring-primary"
+                  checked={ageConfirmed}
+                  onChange={e => setAgeConfirmed(e.target.checked)}
+                />
+                <span className="text-sm text-text-secondary">
+                  I confirm I am 13 years of age or older.
+                </span>
+              </label>
             </div>
           )}
 

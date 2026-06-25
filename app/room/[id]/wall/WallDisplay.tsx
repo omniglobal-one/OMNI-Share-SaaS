@@ -89,7 +89,7 @@ function WallContent({ room, initialPhotos }: WallDisplayProps) {
 
 export function WallDisplay({ room, initialPhotos }: WallDisplayProps) {
   return (
-    <WallGate joinCode={room.join_code} roomName={room.name}>
+    <WallGate joinCode={room.join_code} roomName={room.name} roomId={room.id}>
       <WallContent room={room} initialPhotos={initialPhotos} />
     </WallGate>
   )

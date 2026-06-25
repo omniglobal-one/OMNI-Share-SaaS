@@ -29,6 +29,20 @@ export default async function ModeratePage({ params }: { params: Promise<{ room_
 
   if (!room) notFound()
 
+  // IDOR guard: moderators must be assigned to this specific room;
+  // managers must own it; only admins have cross-room access.
+  if (role === 'moderator') {
+    const { data: assignment } = await admin
+      .from('room_moderators')
+      .select('id')
+      .eq('room_id', room_id)
+      .eq('moderator_id', user.id)
+      .single()
+    if (!assignment) redirect('/rooms')
+  } else if (role === 'manager') {
+    if (room.owner_id !== user.id) redirect('/rooms')
+  }
+
   return (
     <DashboardShell sidebar={
       <Sidebar

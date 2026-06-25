@@ -1,17 +1,22 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { unlockWall } from '@/app/actions/wall'
 
 const INACTIVITY_MS = 5 * 60 * 1000 // 5 minutes
 
 interface WallGateProps {
   joinCode: string
   roomName: string
-  /** If true, skip the gate entirely (e.g. for staff with a proper login) */
+  /** Room UUID — when provided, the gate sets a server-side cookie on unlock */
+  roomId?: string
+  /** If true, skip the gate entirely (e.g. cookie already verified server-side) */
   bypass?: boolean
   children: React.ReactNode
 }
 
-export function WallGate({ joinCode, roomName, bypass = false, children }: WallGateProps) {
+export function WallGate({ joinCode, roomName, roomId, bypass = false, children }: WallGateProps) {
+  const router = useRouter()
   const storageKey = `wall_access_${joinCode}`
   const [unlocked, setUnlocked] = useState(false)
   const [input, setInput] = useState('')
@@ -50,10 +55,16 @@ export function WallGate({ joinCode, roomName, bypass = false, children }: WallG
     }
   }, [storageKey, bypass])
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (input.toUpperCase().trim() === joinCode.toUpperCase()) {
       sessionStorage.setItem(storageKey, '1')
+      if (roomId) {
+        // Set server-side cookie so the wall page can verify access without
+        // trusting client-only sessionStorage.
+        await unlockWall(roomId, input.toUpperCase().trim())
+        router.refresh()
+      }
       setUnlocked(true)
     } else {
       setError(true)

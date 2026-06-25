@@ -21,5 +21,8 @@ export async function GET(
     return NextResponse.json({ error: 'This event has ended.' }, { status: 410 })
   }
 
-  return NextResponse.json({ room: data })
+  // Omit join_code from response — caller already has it; no need to echo it back
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { join_code: _omit, ...roomData } = data
+  return NextResponse.json({ room: roomData })
 }
