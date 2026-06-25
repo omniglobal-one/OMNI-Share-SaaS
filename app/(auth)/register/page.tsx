@@ -9,11 +9,16 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [ageConfirmed, setAgeConfirmed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault()
+    if (!ageConfirmed) {
+      setError('You must confirm you are 13 years of age or older to create an account.')
+      return
+    }
     setError(null)
     setLoading(true)
     const result = await signUp(email, password, fullName)
@@ -92,10 +97,23 @@ export default function RegisterPage() {
               />
             </div>
 
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-bg-border text-primary focus:ring-primary"
+                checked={ageConfirmed}
+                onChange={e => setAgeConfirmed(e.target.checked)}
+              />
+              <span className="text-sm text-text-secondary">
+                I confirm I am 13 years of age or older and I agree to the{' '}
+                <Link href="/privacy" className="text-primary hover:underline">Terms of Use and Privacy Policy</Link>.
+              </span>
+            </label>
+
             <button
               type="submit"
               className="btn-primary w-full"
-              disabled={loading}
+              disabled={loading || !ageConfirmed}
             >
               {loading ? 'Creating account...' : 'Create account'}
             </button>

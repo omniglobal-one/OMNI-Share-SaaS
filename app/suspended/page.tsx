@@ -15,7 +15,7 @@ export default function SuspendedPage() {
         </p>
         <div className="flex flex-col gap-3">
           <a
-            href="mailto:support@omniwall.app"
+            href="mailto:omniglobal.one@gmail.com"
             className="btn-primary justify-center"
           >
             Contact support
