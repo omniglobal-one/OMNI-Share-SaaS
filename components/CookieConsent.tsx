@@ -8,19 +8,11 @@ export function CookieConsent() {
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    const val = localStorage.getItem(STORAGE_KEY)
-    if (val !== 'accepted' && val !== 'rejected') {
-      setVisible(true)
-    }
+    if (!localStorage.getItem(STORAGE_KEY)) setVisible(true)
   }, [])
 
-  function accept() {
-    localStorage.setItem(STORAGE_KEY, 'accepted')
-    setVisible(false)
-  }
-
-  function reject() {
-    localStorage.setItem(STORAGE_KEY, 'rejected')
+  function acknowledge() {
+    localStorage.setItem(STORAGE_KEY, 'acknowledged')
     setVisible(false)
   }
 
@@ -36,16 +28,10 @@ export function CookieConsent() {
         </p>
         <div className="flex items-center gap-2 shrink-0">
           <button
-            onClick={reject}
-            className="text-sm font-medium text-text-secondary border border-bg-border px-4 py-2 rounded-lg hover:text-text-primary transition-colors"
-          >
-            Reject
-          </button>
-          <button
-            onClick={accept}
+            onClick={acknowledge}
             className="shrink-0 btn-primary text-sm px-4 py-2"
           >
-            Accept
+            Got it
           </button>
         </div>
       </div>
