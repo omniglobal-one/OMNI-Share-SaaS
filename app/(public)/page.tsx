@@ -151,7 +151,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features strip */}
-      <section className="bg-white px-6 py-20">
+      <section className="bg-white px-6">
         <div className="max-w-5xl mx-auto bg-gray-950 text-white rounded-3xl overflow-hidden border border-white/10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5">
             {[
