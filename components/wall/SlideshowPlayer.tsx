@@ -79,7 +79,7 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
       {/* Top bar */}
       <div className="flex items-center px-8 pt-6 pb-4 flex-shrink-0">
         {/* Left */}
-        <div className="flex-1 flex items-center gap-2">
+        <div className="flex-1 flex items-center gap-2 self-start pt-3">
           <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
           <span className="text-sm font-medium" style={{ color: `${textColor}60` }}>Live wall</span>
         </div>
@@ -91,7 +91,7 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
           </span>
         </div>
         {/* Right */}
-        <div className="flex-1 flex justify-end items-center gap-4">
+        <div className="flex-1 flex justify-end items-center gap-4 self-start pt-3">
           {/* Mobile: FIFA logo on the right */}
           <div className="sm:hidden flex flex-col items-center gap-1">
             <Image src={fifaLogo} alt="FIFA World Cup 2026" width={56} height={56} className="fifa-spin" style={{ filter: logoGlow }} />
