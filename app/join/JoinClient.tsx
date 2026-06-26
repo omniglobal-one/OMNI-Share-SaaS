@@ -32,6 +32,7 @@ export function JoinClient() {
   }, [authed])
 
   async function handleJoin(joinCode?: string) {
+    if (authed === null) return
     const codeToUse = (joinCode ?? code).toUpperCase()
     if (codeToUse.length !== 6) {
       setError('Enter a 6-character code.')
@@ -159,12 +160,17 @@ export function JoinClient() {
           <button
             onClick={() => handleJoin()}
             className="btn-primary w-full justify-center text-base py-3"
-            disabled={loading || code.length !== 6}
+            disabled={loading || code.length !== 6 || authed === null}
           >
             {loading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Joining...
+              </>
+            ) : authed === null ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Loading...
               </>
             ) : 'Join Room'}
           </button>
