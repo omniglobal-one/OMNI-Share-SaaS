@@ -112,7 +112,7 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
           src={photo.public_url}
           alt={photo.file_name ?? ''}
           className="max-h-full max-w-full object-contain rounded-lg shadow-2xl"
-          style={{ opacity: visible ? 1 : 0, transition: 'opacity 400ms ease-in-out' }}
+          style={{ opacity: visible ? 1 : 0, transition: 'opacity 400ms ease-in-out', boxShadow: '0 0 22px 4px rgba(0,0,0,0.5)' }}
         />
       </div>
 
