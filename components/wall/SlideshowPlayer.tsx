@@ -86,7 +86,7 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
         {/* Centre — desktop only */}
         <div className="hidden sm:flex flex-col items-center gap-1.5">
           <Image src={fifaLogo} alt="FIFA World Cup 2026" width={72} height={72} className="fifa-spin" style={{ filter: logoGlow }} />
-          <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: isLight(bg) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)' }}>
+          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: isLight(bg) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)' }}>
             FIFA World Cup 2026
           </span>
         </div>
@@ -95,7 +95,7 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
           {/* Mobile: FIFA logo on the right */}
           <div className="sm:hidden flex flex-col items-center gap-1">
             <Image src={fifaLogo} alt="FIFA World Cup 2026" width={56} height={56} className="fifa-spin" style={{ filter: logoGlow }} />
-            <span style={{ fontSize: 7, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: isLight(bg) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)' }}>
+            <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: isLight(bg) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)' }}>
               FIFA WC 2026
             </span>
           </div>
