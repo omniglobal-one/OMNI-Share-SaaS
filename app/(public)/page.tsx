@@ -32,7 +32,7 @@ export default function LandingPage() {
           </div>
 
           {/* Headline */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-text-primary leading-[1.05] tracking-tight mb-6">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-text-primary leading-[1.05] tracking-tight mb-10">
             Your event,
             <br />
             <span className="relative inline-block">
