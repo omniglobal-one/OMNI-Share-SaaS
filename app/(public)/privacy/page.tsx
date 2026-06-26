@@ -123,9 +123,9 @@ export default function PrivacyPage() {
           </div>
 
           <div className="space-y-2">
-            <h3 className="font-semibold text-text-primary">Cookies and Local Storage</h3>
+            <h3 className="font-semibold text-text-primary">Cookies and Browser-Based Storage Technologies</h3>
             <p className="text-sm text-text-secondary leading-relaxed">
-              We do not use advertising cookies or third-party tracking cookies. Our platform uses a single browser local storage entry to remember whether you have acknowledged our preferences notice. This entry records only your Accept or Reject choice and has no effect on platform functionality regardless of your selection. You can clear local storage and any session cookies at any time through your browser settings.
+              We do not use advertising cookies or third-party tracking cookies. Our platform uses browser-based storage technologies to remember your preferences and maintain your session. This data is stored locally on your device and is not collected, transmitted to, or retained on OMNI Global&apos;s servers. You may clear this data at any time through your browser or device settings; doing so may affect certain functionality of the platform.
             </p>
             <p className="text-sm text-text-secondary leading-relaxed">
               Your authentication session is managed using secure, HTTP-only cookies set by our authentication provider (Supabase). These are strictly necessary for login functionality and cannot be disabled without preventing access to your account.
