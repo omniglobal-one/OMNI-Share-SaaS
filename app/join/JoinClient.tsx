@@ -51,13 +51,15 @@ export function JoinClient() {
       if (authed === false) {
         // Guest flow: sign in anonymously then join
         const supabase = createClient()
-        const { error: anonError } = await supabase.auth.signInAnonymously()
-        if (anonError) {
+        const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously()
+        if (anonError || !anonData.session) {
           setError('Could not start a guest session. Please try again.')
           setLoading(false)
           return
         }
-        const result = await guestJoinRoom(codeToUse, displayName.trim() || undefined)
+        // Pass the access token directly — avoids cookie-timing race where the
+        // newly created session hasn't been written to document.cookie yet
+        const result = await guestJoinRoom(codeToUse, displayName.trim() || undefined, anonData.session.access_token)
         setLoading(false)
         if (!result.success) {
           setError(result.error)

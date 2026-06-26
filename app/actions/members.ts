@@ -3,24 +3,35 @@ import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supab
 import { insertAuditLog } from '@/lib/audit'
 import type { ActionResult } from '@/types'
 
-export async function guestJoinRoom(code: string, displayName?: string): Promise<ActionResult<string>> {
-  const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Not authenticated' }
-
+export async function guestJoinRoom(code: string, displayName?: string, accessToken?: string): Promise<ActionResult<string>> {
   const admin = createServiceRoleClient()
 
+  // Validate the session: prefer the access token passed directly from the client
+  // (avoids cookie-timing race on freshly created anonymous sessions), fall back
+  // to reading the session cookie for already-authenticated callers.
+  let userId: string
+  if (accessToken) {
+    const { data: { user }, error } = await admin.auth.getUser(accessToken)
+    if (error || !user) return { success: false, error: 'Not authenticated' }
+    userId = user.id
+  } else {
+    const supabase = await createServerSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Not authenticated' }
+    userId = user.id
+  }
+
   // Ensure profile exists — anonymous sign-in may not trigger the DB hook in time
-  const { data: existingProfile } = await admin.from('profiles').select('id').eq('id', user.id).single()
+  const { data: existingProfile } = await admin.from('profiles').select('id').eq('id', userId).single()
   if (!existingProfile) {
     await admin.from('profiles').insert({
-      id: user.id,
+      id: userId,
       ...(displayName ? { full_name: displayName } : {}),
       role: 'user',
       is_suspended: false,
     })
   } else if (displayName) {
-    await admin.from('profiles').update({ full_name: displayName }).eq('id', user.id)
+    await admin.from('profiles').update({ full_name: displayName }).eq('id', userId)
   }
 
   const { data: room } = await admin
@@ -36,15 +47,15 @@ export async function guestJoinRoom(code: string, displayName?: string): Promise
     .from('room_members')
     .select('id')
     .eq('room_id', room.id)
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .single()
 
   if (existing) return { success: true, data: room.id }
 
-  const { error } = await admin.from('room_members').insert({ room_id: room.id, user_id: user.id })
+  const { error } = await admin.from('room_members').insert({ room_id: room.id, user_id: userId })
   if (error) return { success: false, error: error.message }
 
-  await insertAuditLog({ actorId: user.id, action: 'room.join', targetType: 'room', targetId: room.id })
+  await insertAuditLog({ actorId: userId, action: 'room.join', targetType: 'room', targetId: room.id })
 
   return { success: true, data: room.id }
 }
