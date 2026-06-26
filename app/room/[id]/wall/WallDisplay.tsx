@@ -51,7 +51,6 @@ function WallContent({ room, initialPhotos }: WallDisplayProps) {
               ))}
             </div>
           )}
-          <WorldCupBadge bgColor={colors.bg} />
           <span className="text-sm" style={{ color: `${colors.text}80` }}>
             {photos.length} photo{photos.length !== 1 ? 's' : ''}
           </span>
@@ -67,6 +66,11 @@ function WallContent({ room, initialPhotos }: WallDisplayProps) {
             Slideshow
           </button>
         </div>
+      </div>
+
+      {/* FIFA World Cup 2026 — centred commemorative strip */}
+      <div className="flex justify-center py-3 border-b" style={{ borderColor: `${colors.text}10` }}>
+        <WorldCupBadge bgColor={colors.bg} size="sm" />
       </div>
 
       {/* Grid */}

@@ -64,8 +64,8 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
         <p className="text-sm" style={{ color: `${textColor}40` }}>Press Esc or click to exit</p>
       </div>
 
-      {/* Image */}
-      <div className="flex-1 flex items-center justify-center px-16 py-4 min-h-0">
+      {/* Image — FIFA badge sits as a bottom-right corner watermark */}
+      <div className="relative flex-1 flex items-center justify-center px-16 py-6 min-h-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           key={photo.id}
@@ -74,18 +74,18 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
           className="max-h-full max-w-full object-contain rounded-lg shadow-2xl"
           style={{ opacity: visible ? 1 : 0, transition: 'opacity 400ms ease-in-out' }}
         />
+        <div className="absolute bottom-4 right-4 pointer-events-none">
+          <WorldCupBadge bgColor={bg} size="sm" />
+        </div>
       </div>
 
-      {/* Bottom bar */}
-      <div className="flex items-center justify-between px-8 pt-3 pb-7 flex-shrink-0">
+      {/* Bottom info bar */}
+      <div className="flex items-end justify-between px-8 pt-2 pb-6 flex-shrink-0">
         <div>
           <p className="font-bold text-2xl leading-tight" style={{ color: textColor }}>{roomName}</p>
           <p className="font-mono text-base tracking-widest mt-0.5" style={{ color: accent }}>{joinCode}</p>
         </div>
-
-        <WorldCupBadge bgColor={bg} size="md" />
-
-        <p className="text-sm" style={{ color: `${textColor}40` }}>{currentIndex + 1} / {photos.length}</p>
+        <p className="text-sm pb-1" style={{ color: `${textColor}40` }}>{currentIndex + 1} / {photos.length}</p>
       </div>
     </div>
   )
