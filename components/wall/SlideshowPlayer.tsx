@@ -1,6 +1,14 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import type { Photo, WallColors } from '@/types'
+
+function isLightBg(hex: string): boolean {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.5
+}
 
 interface SlideshowPlayerProps {
   photos: Photo[]
@@ -17,6 +25,7 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
   const bg = colors?.bg ?? '#000000'
   const textColor = colors?.text ?? '#FFFFFF'
   const accent = colors?.accent ?? '#2563EB'
+  const fifaLogo = isLightBg(bg) ? '/fifa-b.png' : '/fifa-w.png'
 
   const advance = useCallback(() => {
     if (photos.length <= 1) return
@@ -77,9 +86,12 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
 
       {/* Bottom info bar */}
       <div className="flex items-end justify-between px-8 pt-2 pb-6 flex-shrink-0">
-        <div>
-          <p className="font-bold text-2xl leading-tight" style={{ color: textColor }}>{roomName}</p>
-          <p className="font-mono text-base tracking-widest mt-0.5" style={{ color: accent }}>{joinCode}</p>
+        <div className="flex items-end gap-4">
+          <div>
+            <p className="font-bold text-2xl leading-tight" style={{ color: textColor }}>{roomName}</p>
+            <p className="font-mono text-base tracking-widest mt-0.5" style={{ color: accent }}>{joinCode}</p>
+          </div>
+          <Image src={fifaLogo} alt="FIFA World Cup" width={56} height={56} className="opacity-80 mb-0.5" />
         </div>
         <p className="text-sm pb-1" style={{ color: `${textColor}40` }}>{currentIndex + 1} / {photos.length}</p>
       </div>

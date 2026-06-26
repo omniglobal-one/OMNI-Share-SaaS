@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import { PhotoGrid } from '@/components/wall/PhotoGrid'
 import { SlideshowPlayer } from '@/components/wall/SlideshowPlayer'
 import { NewPhotoToast } from '@/components/wall/NewPhotoToast'
@@ -8,6 +9,13 @@ import { usePhotoWall } from '@/hooks/usePhotoWall'
 import type { Room, Photo, WallColors, SocialLink } from '@/types'
 
 const DEFAULT_COLORS: WallColors = { bg: '#000000', text: '#FFFFFF', accent: '#2563EB' }
+
+function isLightBg(hex: string): boolean {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.5
+}
 
 interface WallDisplayProps {
   room: Room
@@ -22,6 +30,7 @@ function WallContent({ room, initialPhotos }: WallDisplayProps) {
   const prevCountRef = useRef(initialPhotos.length)
   const colors = room.wall_colors ?? DEFAULT_COLORS
   const links: SocialLink[] = room.social_links ?? []
+  const fifaLogo = isLightBg(colors.bg) ? '/fifa-b.png' : '/fifa-w.png'
 
   useEffect(() => {
     if (photos.length > prevCountRef.current) {
@@ -50,6 +59,7 @@ function WallContent({ room, initialPhotos }: WallDisplayProps) {
               ))}
             </div>
           )}
+          <Image src={fifaLogo} alt="FIFA World Cup" width={48} height={48} className="opacity-80" />
           <span className="text-sm" style={{ color: `${colors.text}80` }}>
             {photos.length} photo{photos.length !== 1 ? 's' : ''}
           </span>
