@@ -60,7 +60,20 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
     )
   }
 
+  const logoGlow = isLight(bg)
+    ? 'drop-shadow(0 2px 6px rgba(0,0,0,0.25))'
+    : 'drop-shadow(0 0 14px rgba(251,191,36,0.45))'
+
   return (
+    <>
+    <style>{`
+      @keyframes fifa-hspin {
+        0%   { transform: perspective(500px) rotateY(0deg); }
+        14%  { transform: perspective(500px) rotateY(360deg); }
+        100% { transform: perspective(500px) rotateY(360deg); }
+      }
+      .fifa-spin { animation: fifa-hspin 5s ease-in-out 2s infinite; }
+    `}</style>
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: bg }} onClick={onExit}>
 
       {/* Top bar */}
@@ -72,7 +85,7 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
         </div>
         {/* Centre — desktop only */}
         <div className="hidden sm:flex flex-col items-center gap-1.5">
-          <Image src={fifaLogo} alt="FIFA World Cup 2026" width={72} height={72} />
+          <Image src={fifaLogo} alt="FIFA World Cup 2026" width={72} height={72} className="fifa-spin" style={{ filter: logoGlow }} />
           <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: isLight(bg) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)' }}>
             FIFA World Cup 2026
           </span>
@@ -81,7 +94,7 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
         <div className="flex-1 flex justify-end items-center gap-4">
           {/* Mobile: FIFA logo on the right */}
           <div className="sm:hidden flex flex-col items-center gap-1">
-            <Image src={fifaLogo} alt="FIFA World Cup 2026" width={56} height={56} />
+            <Image src={fifaLogo} alt="FIFA World Cup 2026" width={56} height={56} className="fifa-spin" style={{ filter: logoGlow }} />
             <span style={{ fontSize: 7, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: isLight(bg) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)' }}>
               FIFA WC 2026
             </span>
@@ -112,5 +125,6 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
         <p className="text-sm pb-1" style={{ color: `${textColor}40` }}>{currentIndex + 1} / {photos.length}</p>
       </div>
     </div>
+    </>
   )
 }
