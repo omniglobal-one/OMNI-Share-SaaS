@@ -1,6 +1,14 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import type { Photo, WallColors } from '@/types'
+
+function isLight(hex: string) {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.5
+}
 
 interface SlideshowPlayerProps {
   photos: Photo[]
@@ -14,9 +22,10 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [visible, setVisible] = useState(true)
 
-  const bg        = colors?.bg    ?? '#000000'
-  const textColor = colors?.text  ?? '#FFFFFF'
+  const bg        = colors?.bg     ?? '#000000'
+  const textColor = colors?.text   ?? '#FFFFFF'
   const accent    = colors?.accent ?? '#2563EB'
+  const fifaLogo  = isLight(bg) ? '/fifa-b.png' : '/fifa-w.png'
 
   const advance = useCallback(() => {
     if (photos.length <= 1) return
@@ -55,12 +64,31 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: bg }} onClick={onExit}>
 
       {/* Top bar */}
-      <div className="flex items-center justify-between px-8 pt-6 pb-2 flex-shrink-0">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center px-8 pt-6 pb-4 flex-shrink-0">
+        {/* Left */}
+        <div className="flex-1 flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
           <span className="text-sm font-medium" style={{ color: `${textColor}60` }}>Live wall</span>
         </div>
-        <p className="text-sm" style={{ color: `${textColor}40` }}>Press Esc or click to exit</p>
+        {/* Centre — desktop only */}
+        <div className="hidden sm:flex flex-col items-center gap-1.5">
+          <Image src={fifaLogo} alt="FIFA World Cup 2026" width={72} height={72} />
+          <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: '0.15em', textTransform: 'uppercase', color: isLight(bg) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)' }}>
+            FIFA World Cup 2026
+          </span>
+        </div>
+        {/* Right */}
+        <div className="flex-1 flex justify-end items-center gap-4">
+          {/* Mobile: FIFA logo on the right */}
+          <div className="sm:hidden flex flex-col items-center gap-1">
+            <Image src={fifaLogo} alt="FIFA World Cup 2026" width={56} height={56} />
+            <span style={{ fontSize: 7, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: isLight(bg) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)' }}>
+              FIFA WC 2026
+            </span>
+          </div>
+          {/* Desktop: Esc hint */}
+          <p className="hidden sm:block text-sm" style={{ color: `${textColor}40` }}>Press Esc or click to exit</p>
+        </div>
       </div>
 
       {/* Image area */}
