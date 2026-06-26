@@ -1,14 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
-import Image from 'next/image'
+import { WorldCupBadge } from '@/components/wall/WorldCupBadge'
 import type { Photo, WallColors } from '@/types'
-
-function isLightBg(hex: string): boolean {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.5
-}
 
 interface SlideshowPlayerProps {
   photos: Photo[]
@@ -25,7 +18,6 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
   const bg = colors?.bg ?? '#000000'
   const textColor = colors?.text ?? '#FFFFFF'
   const accent = colors?.accent ?? '#2563EB'
-  const fifaLogo = isLightBg(bg) ? '/fifa-b.png' : '/fifa-w.png'
 
   const advance = useCallback(() => {
     if (photos.length <= 1) return
@@ -72,8 +64,8 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
         <p className="text-sm" style={{ color: `${textColor}40` }}>Press Esc or click to exit</p>
       </div>
 
-      {/* Image area */}
-      <div className="flex-1 flex items-center justify-center px-16 py-6 min-h-0">
+      {/* Image area — badge sits in the bottom-right corner as a watermark */}
+      <div className="relative flex-1 flex items-center justify-center px-16 py-6 min-h-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           key={photo.id}
@@ -82,16 +74,16 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
           className="max-h-full max-w-full object-contain rounded-lg shadow-2xl"
           style={{ opacity: visible ? 1 : 0, transition: 'opacity 400ms ease-in-out' }}
         />
+        <div className="absolute bottom-4 right-4 pointer-events-none">
+          <WorldCupBadge bgColor={bg} size="sm" />
+        </div>
       </div>
 
       {/* Bottom info bar */}
       <div className="flex items-end justify-between px-8 pt-2 pb-6 flex-shrink-0">
-        <div className="flex items-end gap-4">
-          <div>
-            <p className="font-bold text-2xl leading-tight" style={{ color: textColor }}>{roomName}</p>
-            <p className="font-mono text-base tracking-widest mt-0.5" style={{ color: accent }}>{joinCode}</p>
-          </div>
-          <Image src={fifaLogo} alt="FIFA World Cup" width={56} height={56} className="opacity-80 mb-0.5" />
+        <div>
+          <p className="font-bold text-2xl leading-tight" style={{ color: textColor }}>{roomName}</p>
+          <p className="font-mono text-base tracking-widest mt-0.5" style={{ color: accent }}>{joinCode}</p>
         </div>
         <p className="text-sm pb-1" style={{ color: `${textColor}40` }}>{currentIndex + 1} / {photos.length}</p>
       </div>
