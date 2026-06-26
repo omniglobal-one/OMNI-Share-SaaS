@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
-import { WorldCupBadge } from '@/components/wall/WorldCupBadge'
 import type { Photo, WallColors } from '@/types'
 
 interface SlideshowPlayerProps {
@@ -64,8 +63,8 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
         <p className="text-sm" style={{ color: `${textColor}40` }}>Press Esc or click to exit</p>
       </div>
 
-      {/* Image — FIFA badge sits as a bottom-right corner watermark */}
-      <div className="relative flex-1 flex items-center justify-center px-16 py-6 min-h-0">
+      {/* Image area */}
+      <div className="flex-1 flex items-center justify-center px-16 py-6 min-h-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           key={photo.id}
@@ -74,9 +73,6 @@ export function SlideshowPlayer({ photos, roomName, joinCode, colors, onExit }: 
           className="max-h-full max-w-full object-contain rounded-lg shadow-2xl"
           style={{ opacity: visible ? 1 : 0, transition: 'opacity 400ms ease-in-out' }}
         />
-        <div className="absolute bottom-4 right-4 pointer-events-none">
-          <WorldCupBadge bgColor={bg} size="sm" />
-        </div>
       </div>
 
       {/* Bottom info bar */}

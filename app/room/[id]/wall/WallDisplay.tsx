@@ -4,7 +4,6 @@ import { PhotoGrid } from '@/components/wall/PhotoGrid'
 import { SlideshowPlayer } from '@/components/wall/SlideshowPlayer'
 import { NewPhotoToast } from '@/components/wall/NewPhotoToast'
 import { WallGate } from '@/components/wall/WallGate'
-import { WorldCupBadge } from '@/components/wall/WorldCupBadge'
 import { usePhotoWall } from '@/hooks/usePhotoWall'
 import type { Room, Photo, WallColors, SocialLink } from '@/types'
 
@@ -66,11 +65,6 @@ function WallContent({ room, initialPhotos }: WallDisplayProps) {
             Slideshow
           </button>
         </div>
-      </div>
-
-      {/* FIFA World Cup 2026 — centred commemorative strip */}
-      <div className="flex justify-center py-3 border-b" style={{ borderColor: `${colors.text}10` }}>
-        <WorldCupBadge bgColor={colors.bg} size="sm" />
       </div>
 
       {/* Grid */}
