@@ -32,7 +32,7 @@ export default function LandingPage() {
           </div>
 
           {/* Headline */}
-          <h1 className="text-6xl sm:text-7xl font-extrabold text-text-primary leading-[1.05] tracking-tight mb-6">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-text-primary leading-[1.05] tracking-tight mb-6">
             Your event,
             <br />
             <span className="relative inline-block">
@@ -77,7 +77,7 @@ export default function LandingPage() {
             </div>
             {/* Fake photo wall */}
             <div className="p-4 bg-gray-950">
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
                   { h: 'h-28', bg: 'bg-gradient-to-br from-blue-400 to-blue-600' },
                   { h: 'h-36', bg: 'bg-gradient-to-br from-purple-400 to-pink-500' },
@@ -174,7 +174,7 @@ export default function LandingPage() {
                 body: 'Cast to a TV, projector, or monitor. Designed for massive screens and tiny pockets alike.',
               },
             ].map((f, i) => (
-              <div key={i} className="bg-gray-950 px-8 py-10">
+              <div key={i} className="bg-gray-950 px-8 py-10 flex flex-col items-center text-center">
                 <svg className={`w-6 h-6 ${f.accent} mb-5`} fill="none" viewBox="0 0 24 24" stroke="currentColor">{f.icon}</svg>
                 <h3 className="font-bold text-white text-lg mb-2">{f.title}</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">{f.body}</p>
