@@ -102,7 +102,12 @@ export function JoinCodeCard({ roomId, joinCode, appUrl, roomId2 }: JoinCodeCard
           </div>
 
           <div className="flex flex-col items-center gap-2">
-            <QRCode value={qrMode === 'join' ? joinUrl : wallUrl} size={180} />
+            <QRCode
+              value={qrMode === 'join' ? joinUrl : wallUrl}
+              size={180}
+              printCardHref={`/api/qr/room/${roomId}/${qrMode}`}
+              printCardDownloadName={`${roomId}-${qrMode}-card.png`}
+            />
             <p className="text-text-tertiary text-xs font-mono text-center break-all">
               {qrMode === 'join' ? joinUrl : wallUrl}
             </p>
