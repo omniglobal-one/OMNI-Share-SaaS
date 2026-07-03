@@ -5,8 +5,8 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: '#06B6D4',
-        'primary-hover': '#0891B2',
+        primary: '#0E7490',
+        'primary-hover': '#155E75',
         secondary: '#F59E0B',
         danger: '#DC2626',
         success: '#16A34A',
