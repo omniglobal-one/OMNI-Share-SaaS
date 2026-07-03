@@ -31,7 +31,7 @@ export async function assignModerator(roomId: string, username: string): Promise
 
   if (error) {
     if (error.code === '23505') return { success: false, error: 'User is already a moderator' }
-    return { success: false, error: error.message }
+    return { success: false, error: 'Failed to assign moderator' }
   }
 
   await insertAuditLog({ actorId: user.id, action: 'moderator.assign', targetType: 'room', targetId: roomId, metadata: { username } })
@@ -47,7 +47,7 @@ export async function removeModerator(roomId: string, moderatorId: string): Prom
 
   const admin = createServiceRoleClient()
   const { error } = await admin.from('room_moderators').delete().eq('room_id', roomId).eq('moderator_id', moderatorId)
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to remove moderator' }
 
   await insertAuditLog({ actorId: user.id, action: 'moderator.remove', targetType: 'room', targetId: roomId, metadata: { moderatorId } })
 

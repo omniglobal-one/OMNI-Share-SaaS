@@ -36,7 +36,7 @@ export async function approvePhoto(photoId: string, roomId: string): Promise<Act
     moderated_at: new Date().toISOString(),
   }).eq('id', photoId)
 
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to approve photo' }
 
   await Promise.resolve(admin.rpc('increment_approved_count', { room_id_param: roomId })).catch(() => {})
 
@@ -76,7 +76,7 @@ export async function rejectPhoto(photoId: string, roomId: string, reason?: stri
   }
 
   const { error } = await admin.from('photos').update(updateData).eq('id', photoId)
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to reject photo' }
 
   await insertAuditLog({
     actorId: user.id,

@@ -44,7 +44,7 @@ export async function moderatePhoto(
     ...(status === 'rejected' && rejectionReason ? { rejection_reason: rejectionReason } : {}),
   }).eq('id', photoId)
 
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to moderate photo' }
 
   // Resolve uploader username for the audit log
   const { data: uploader } = await admin
@@ -109,7 +109,7 @@ export async function deletePhoto(photoId: string): Promise<ActionResult> {
   await deleteFromStorage(photo.storage_path)
 
   const { error } = await admin.from('photos').delete().eq('id', photoId)
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to delete photo' }
 
   await insertAuditLog({ actorId: user.id, action: 'photo.delete', targetType: 'photo', targetId: photoId })
 

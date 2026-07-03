@@ -31,7 +31,7 @@ export async function createUser(email: string, password: string, fullName: stri
     user_metadata: { full_name: fullName },
   })
 
-  if (error || !data.user) return { success: false, error: error?.message ?? 'Failed to create user' }
+  if (error || !data.user) return { success: false, error: 'Failed to create user' }
 
   // Set role
   await admin.from('profiles').update({ role, full_name: fullName }).eq('id', data.user.id)
@@ -51,7 +51,7 @@ export async function changeRole(targetUserId: string, role: Role): Promise<Acti
 
   const admin = createServiceRoleClient()
   const { error } = await admin.from('profiles').update({ role }).eq('id', targetUserId)
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to update role' }
 
   await insertAuditLog({ actorId: user.id, action: 'user.change_role', targetType: 'user', targetId: targetUserId, metadata: { role } })
 
@@ -66,7 +66,7 @@ export async function suspendUser(targetUserId: string): Promise<ActionResult> {
 
   const admin = createServiceRoleClient()
   const { error } = await admin.from('profiles').update({ is_suspended: true }).eq('id', targetUserId)
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to suspend user' }
 
   await insertAuditLog({ actorId: user.id, action: 'user.suspend', targetType: 'user', targetId: targetUserId })
 
@@ -81,7 +81,7 @@ export async function unsuspendUser(targetUserId: string): Promise<ActionResult>
 
   const admin = createServiceRoleClient()
   const { error } = await admin.from('profiles').update({ is_suspended: false }).eq('id', targetUserId)
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to unsuspend user' }
 
   await insertAuditLog({ actorId: user.id, action: 'user.unsuspend', targetType: 'user', targetId: targetUserId })
 
@@ -96,7 +96,7 @@ export async function deleteUser(targetUserId: string): Promise<ActionResult> {
 
   const admin = createServiceRoleClient()
   const { error } = await admin.auth.admin.deleteUser(targetUserId)
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to delete user' }
 
   await insertAuditLog({ actorId: user.id, action: 'user.delete', targetType: 'user', targetId: targetUserId })
 

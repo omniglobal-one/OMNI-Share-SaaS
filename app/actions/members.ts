@@ -55,7 +55,7 @@ export async function guestJoinRoom(code: string, displayName?: string, accessTo
   if (existing) return { success: true, data: room.id }
 
   const { error } = await admin.from('room_members').insert({ room_id: room.id, user_id: userId })
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to join room' }
 
   await insertAuditLog({ actorId: userId, action: 'room.join', targetType: 'room', targetId: room.id })
 
@@ -96,7 +96,7 @@ export async function joinRoom(code: string): Promise<ActionResult<string>> {
     room_id: room.id,
     user_id: user.id,
   })
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to join room' }
 
   await insertAuditLog({ actorId: user.id, action: 'room.join', targetType: 'room', targetId: room.id })
 
@@ -125,7 +125,7 @@ export async function removeMember(roomId: string, userId: string): Promise<Acti
     .eq('room_id', roomId)
     .eq('user_id', userId)
 
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to remove member' }
 
   await insertAuditLog({ actorId: user.id, action: 'room.remove_member', targetType: 'room', targetId: roomId, metadata: { userId } })
 
