@@ -38,15 +38,16 @@ export async function GET(
       appUrl,
     })
 
+    const safeId = room_id.replace(/[^a-z0-9-]/gi, '-').slice(0, 60)
     return new Response(new Uint8Array(png), {
       headers: {
         'Content-Type': 'image/png',
-        'Content-Disposition': `attachment; filename="${room_id}-wall-card.png"`,
+        'Content-Disposition': `attachment; filename="${safeId}-wall-card.png"`,
         'Cache-Control': 'private, max-age=3600',
       },
     })
   } catch (err) {
-    console.error('[QR room wall route]', err)
+    console.error('[QR room wall route]', err instanceof Error ? err.message : 'Unknown error')
     return NextResponse.json({ error: 'Failed to generate QR card' }, { status: 500 })
   }
 }
