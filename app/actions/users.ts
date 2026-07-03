@@ -3,6 +3,9 @@ import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supab
 import { insertAuditLog } from '@/lib/audit'
 import type { ActionResult, Role } from '@/types'
 
+const ALLOWED_ROLES: Role[] = ['admin', 'manager', 'moderator', 'user']
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 async function isAdmin(userId: string): Promise<boolean> {
   const admin = createServiceRoleClient()
   const { data } = await admin.from('profiles').select('role').eq('id', userId).single()
@@ -14,6 +17,11 @@ export async function createUser(email: string, password: string, fullName: stri
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not authenticated' }
   if (!await isAdmin(user.id)) return { success: false, error: 'Admin only' }
+
+  if (!EMAIL_RE.test(email)) return { success: false, error: 'Invalid email address.' }
+  if (!password || password.length < 8) return { success: false, error: 'Password must be at least 8 characters.' }
+  if (fullName && fullName.length > 120) return { success: false, error: 'Name must be 120 characters or fewer.' }
+  if (!(ALLOWED_ROLES as string[]).includes(role)) return { success: false, error: 'Invalid role.' }
 
   const admin = createServiceRoleClient()
   const { data, error } = await admin.auth.admin.createUser({
@@ -38,6 +46,8 @@ export async function changeRole(targetUserId: string, role: Role): Promise<Acti
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not authenticated' }
   if (!await isAdmin(user.id)) return { success: false, error: 'Admin only' }
+
+  if (!(ALLOWED_ROLES as string[]).includes(role)) return { success: false, error: 'Invalid role.' }
 
   const admin = createServiceRoleClient()
   const { error } = await admin.from('profiles').update({ role }).eq('id', targetUserId)

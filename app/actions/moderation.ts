@@ -52,6 +52,8 @@ export async function approvePhoto(photoId: string, roomId: string): Promise<Act
 }
 
 export async function rejectPhoto(photoId: string, roomId: string, reason?: string): Promise<ActionResult> {
+  if (reason && reason.length > 500) return { success: false, error: 'Rejection reason must be 500 characters or fewer.' }
+
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not authenticated' }

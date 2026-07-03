@@ -5,6 +5,17 @@ import { insertAuditLog } from '@/lib/audit'
 import { deleteBanner } from '@/lib/storage'
 import type { ActionResult } from '@/types'
 
+function isValidHttpUrl(value: string): boolean {
+  try {
+    const u = new URL(value)
+    return u.protocol === 'http:' || u.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+const COLOR_RE = /^#[0-9a-fA-F]{3,8}$|^[a-zA-Z]+$/
+
 async function generateUniqueJoinCode(supabase: ReturnType<typeof createServiceRoleClient>): Promise<string> {
   for (let i = 0; i < 10; i++) {
     const code = generateJoinCode()
@@ -31,6 +42,20 @@ export async function createRoom(formData: {
     return { success: false, error: 'Insufficient permissions' }
   }
 
+  if (!formData.name?.trim() || formData.name.length > 100) {
+    return { success: false, error: 'Room name must be 1–100 characters.' }
+  }
+  if (formData.description !== undefined && formData.description.length > 500) {
+    return { success: false, error: 'Description must be 500 characters or fewer.' }
+  }
+  if (formData.bannerUrl && !isValidHttpUrl(formData.bannerUrl)) {
+    return { success: false, error: 'Banner URL must be a valid http/https URL.' }
+  }
+  if (formData.maxUploadsPerUser !== undefined &&
+      (!Number.isInteger(formData.maxUploadsPerUser) || formData.maxUploadsPerUser < 1 || formData.maxUploadsPerUser > 1000)) {
+    return { success: false, error: 'Max uploads per user must be between 1 and 1000.' }
+  }
+
   const admin = createServiceRoleClient()
   const joinCodeResult = await generateUniqueJoinCode(admin).catch(() => null)
   if (!joinCodeResult) return { success: false, error: 'Failed to generate join code' }
@@ -46,7 +71,7 @@ export async function createRoom(formData: {
   }
 
   const { data: room, error } = await admin.from('rooms').insert(insertData).select('id').single()
-  if (error || !room) return { success: false, error: error?.message ?? 'Failed to create room' }
+  if (error || !room) return { success: false, error: 'Failed to create room' }
 
   await insertAuditLog({ actorId: user.id, action: 'room.create', targetType: 'room', targetId: room.id, metadata: { name: formData.name } })
 
@@ -77,6 +102,34 @@ export async function updateRoom(roomId: string, formData: {
   if (profile.is_suspended) return { success: false, error: 'Your account is suspended' }
   if (!await assertRoomOwner(user.id, roomId, profile.role)) {
     return { success: false, error: 'Insufficient permissions' }
+  }
+
+  if (formData.name !== undefined && (formData.name.trim().length === 0 || formData.name.length > 100)) {
+    return { success: false, error: 'Room name must be 1–100 characters.' }
+  }
+  if (formData.description !== undefined && formData.description.length > 500) {
+    return { success: false, error: 'Description must be 500 characters or fewer.' }
+  }
+  if (formData.bannerUrl !== undefined && formData.bannerUrl !== '' && !isValidHttpUrl(formData.bannerUrl)) {
+    return { success: false, error: 'Banner URL must be a valid http/https URL.' }
+  }
+  if (formData.maxUploadsPerUser !== undefined &&
+      (!Number.isInteger(formData.maxUploadsPerUser) || formData.maxUploadsPerUser < 1 || formData.maxUploadsPerUser > 1000)) {
+    return { success: false, error: 'Max uploads per user must be between 1 and 1000.' }
+  }
+  if (formData.wallColors !== undefined) {
+    const { bg, text, accent } = formData.wallColors
+    if (!COLOR_RE.test(bg) || !COLOR_RE.test(text) || !COLOR_RE.test(accent)) {
+      return { success: false, error: 'Invalid colour value in wall colours.' }
+    }
+  }
+  if (formData.socialLinks !== undefined) {
+    for (const link of formData.socialLinks) {
+      if (!link.platform || link.platform.length > 50) return { success: false, error: 'Invalid social platform.' }
+      if (!link.label || link.label.length > 100) return { success: false, error: 'Invalid social label.' }
+      if (!isValidHttpUrl(link.url)) return { success: false, error: 'Social link URL must be a valid http/https URL.' }
+      if (!Number.isInteger(link.display_order) || link.display_order < 0) return { success: false, error: 'Invalid display order.' }
+    }
   }
 
   const updateData: Record<string, unknown> = {}
@@ -133,7 +186,7 @@ export async function deleteRoom(roomId: string): Promise<ActionResult> {
   }
 
   const { error } = await admin.from('rooms').delete().eq('id', roomId)
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: 'Failed to delete room' }
 
   await insertAuditLog({ actorId: user.id, action: 'room.delete', targetType: 'room', targetId: roomId })
 

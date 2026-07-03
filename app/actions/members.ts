@@ -4,6 +4,8 @@ import { insertAuditLog } from '@/lib/audit'
 import type { ActionResult } from '@/types'
 
 export async function guestJoinRoom(code: string, displayName?: string, accessToken?: string): Promise<ActionResult<string>> {
+  if (displayName && displayName.length > 120) return { success: false, error: 'Display name must be 120 characters or fewer.' }
+
   const admin = createServiceRoleClient()
 
   // Validate the session: prefer the access token passed directly from the client

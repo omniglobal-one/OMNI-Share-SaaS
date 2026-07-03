@@ -13,6 +13,9 @@ export async function moderatePhoto(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not authenticated' }
 
+  if (status !== 'approved' && status !== 'rejected') return { success: false, error: 'Invalid status.' }
+  if (rejectionReason && rejectionReason.length > 500) return { success: false, error: 'Rejection reason must be 500 characters or fewer.' }
+
   const admin = createServiceRoleClient()
 
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()

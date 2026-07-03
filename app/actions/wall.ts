@@ -10,7 +10,16 @@ export async function unlockWall(roomId: string, code: string): Promise<{ succes
     .eq('id', roomId)
     .single()
 
-  if (!room || room.join_code.toUpperCase() !== code.toUpperCase()) {
+  if (!room) return { success: false }
+
+  // Constant-time comparison to prevent timing attacks on the join code
+  const correct = room.join_code.toUpperCase()
+  const provided = code.toUpperCase()
+  let mismatch = correct.length ^ provided.length
+  for (let i = 0; i < Math.max(correct.length, provided.length); i++) {
+    mismatch |= (correct.charCodeAt(i % correct.length) ^ provided.charCodeAt(i % provided.length))
+  }
+  if (mismatch !== 0) {
     return { success: false }
   }
 

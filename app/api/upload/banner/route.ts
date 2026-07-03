@@ -4,6 +4,21 @@ import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supab
 const MAX_SIZE = 5 * 1024 * 1024 // 5 MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
+const MAGIC_BYTES: Array<{ mime: string; bytes: number[]; offset?: number }> = [
+  { mime: 'image/jpeg', bytes: [0xFF, 0xD8, 0xFF] },
+  { mime: 'image/png',  bytes: [0x89, 0x50, 0x4E, 0x47] },
+  { mime: 'image/webp', bytes: [0x52, 0x49, 0x46, 0x46] },
+]
+
+function detectMimeFromBytes(buf: Uint8Array): string | null {
+  for (const sig of MAGIC_BYTES) {
+    const off = sig.offset ?? 0
+    if (buf.length < off + sig.bytes.length) continue
+    if (sig.bytes.every((b, i) => buf[off + i] === b)) return sig.mime
+  }
+  return null
+}
+
 export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -30,16 +45,21 @@ export async function POST(request: NextRequest) {
   const file = formData.get('file')
   if (!(file instanceof File)) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
   if (file.size > MAX_SIZE) return NextResponse.json({ error: 'File too large (max 5 MB)' }, { status: 400 })
-  if (!ALLOWED_TYPES.includes(file.type)) return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 })
 
-  const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
-  const path = `banners/${user.id}/${Date.now()}.${ext}`
+  // Read buffer first, then validate by magic bytes — never trust client-supplied MIME type
   const buffer = await file.arrayBuffer()
+  const detectedMime = detectMimeFromBytes(new Uint8Array(buffer))
+  if (!detectedMime || !ALLOWED_TYPES.includes(detectedMime)) {
+    return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 })
+  }
+
+  const ext = detectedMime === 'image/png' ? 'png' : detectedMime === 'image/webp' ? 'webp' : 'jpg'
+  const path = `banners/${user.id}/${Date.now()}.${ext}`
 
   const admin = createServiceRoleClient()
   const { error: uploadError } = await admin.storage
     .from('room-banners')
-    .upload(path, buffer, { contentType: file.type, upsert: false })
+    .upload(path, buffer, { contentType: detectedMime, upsert: false })
 
   if (uploadError) return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
 
