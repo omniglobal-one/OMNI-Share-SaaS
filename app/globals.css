@@ -59,7 +59,7 @@
     cursor: pointer;
   }
   select.input:focus {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%232563EB' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%230E7490' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 
   .label { @apply text-text-secondary text-sm font-medium mb-1 block; }
@@ -82,10 +82,11 @@
   .table-base tr:hover td { @apply bg-bg-border/30; }
 
   .skeleton { @apply bg-bg-border animate-pulse rounded; }
-  .mono { @apply font-mono text-sm; }
+  .mono { @apply font-mono text-sm text-text-tertiary; }
   .page-title { @apply text-2xl font-semibold text-text-primary; }
+  .page-header { @apply text-2xl font-semibold text-text-primary mb-6; }
   .section-header { @apply text-lg font-semibold text-text-primary mb-4; }
-  .section-title { @apply text-base font-semibold text-text-primary mb-3; }
+  .section-title { @apply text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-3; }
   .stat-card { @apply card p-6; }
 
   .masonry-grid { columns: 1; column-gap: 12px; }

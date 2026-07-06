@@ -21,8 +21,12 @@ const config: Config = {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-mono)', 'monospace'],
       },
-      borderRadius: { DEFAULT: '8px', lg: '8px', xl: '12px' },
+      borderRadius: { DEFAULT: '8px', lg: '8px', xl: '8px' },
       borderColor: { DEFAULT: '#E5E7EB' },
+      boxShadow: {
+        card: '0 1px 2px rgba(0,0,0,0.05)',
+        glow: '0 0 24px rgba(14, 116, 144, 0.35)',
+      },
     },
   },
   plugins: [],
