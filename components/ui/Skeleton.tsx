@@ -165,6 +165,72 @@ export function AdminPageSkeleton() {
   )
 }
 
+export function NewRoomPageSkeleton() {
+  return (
+    <DashboardShellSkeleton>
+      <SkeletonTopbar />
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="max-w-2xl space-y-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="card p-6 space-y-4">
+              <Skeleton className="h-5 w-36" />
+              {Array.from({ length: 3 }).map((_, j) => (
+                <div key={j} className="space-y-1.5">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-9 w-full rounded-lg" />
+                </div>
+              ))}
+            </div>
+          ))}
+          <div className="flex justify-end gap-3">
+            <Skeleton className="h-10 w-24 rounded-xl" />
+            <Skeleton className="h-10 w-32 rounded-xl" />
+          </div>
+        </div>
+      </div>
+    </DashboardShellSkeleton>
+  )
+}
+
+export function RoomViewSkeleton() {
+  return (
+    <div className="min-h-screen bg-bg-base flex flex-col">
+      <div className="border-b border-bg-border bg-bg-card px-4 py-3 flex items-center justify-between">
+        <Skeleton className="h-6 w-40" />
+        <Skeleton className="h-8 w-24 rounded-lg" />
+      </div>
+      <div className="flex-1 p-4 sm:p-6 space-y-4 max-w-lg mx-auto w-full">
+        <div className="card p-5 space-y-3">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-9 w-full rounded-xl" />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 rounded-xl" />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function WallDisplaySkeleton() {
+  return (
+    <div className="min-h-screen bg-gray-950 flex flex-col">
+      <div className="px-6 py-4 flex items-center justify-between border-b border-white/10">
+        <Skeleton className="h-6 w-48 bg-white/10" />
+        <Skeleton className="h-5 w-24 bg-white/10" />
+      </div>
+      <div className="flex-1 p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 content-start">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <Skeleton key={i} className="h-40 rounded-xl bg-white/10" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function ModeratePageSkeleton() {
   return (
     <div className="min-h-screen bg-bg-base">

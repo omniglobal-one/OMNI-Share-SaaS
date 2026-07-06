@@ -184,6 +184,65 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Pricing */}
+      <section className="px-6 py-24 max-w-5xl mx-auto w-full">
+        <div className="text-center mb-14">
+          <p className="text-primary font-semibold text-sm uppercase tracking-widest mb-3">Pricing</p>
+          <h2 className="text-4xl font-bold text-text-primary">Simple, transparent pricing</h2>
+          <p className="text-text-secondary mt-4 max-w-md mx-auto">Start free for your first month. No credit card required.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="border border-bg-border rounded-2xl p-8 flex flex-col">
+            <p className="text-text-secondary text-xs font-semibold uppercase tracking-widest mb-4">Free trial</p>
+            <div className="flex items-end gap-1 mb-2">
+              <span className="text-4xl font-extrabold text-text-primary">Free</span>
+            </div>
+            <p className="text-text-secondary text-sm mb-6">First month on us. No credit card needed.</p>
+            <ul className="text-sm text-text-secondary space-y-3 mb-8 flex-1">
+              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>Full access, all features</li>
+              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>No commitment</li>
+              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>Cancel before billing</li>
+            </ul>
+            <Link href="/join" className="inline-flex items-center justify-center w-full py-3 rounded-xl border border-bg-border text-text-primary font-semibold text-sm hover:bg-bg-base transition-colors">
+              Start free
+            </Link>
+          </div>
+          <div className="border border-bg-border rounded-2xl p-8 flex flex-col">
+            <p className="text-text-secondary text-xs font-semibold uppercase tracking-widest mb-4">Monthly</p>
+            <div className="flex items-end gap-1 mb-2">
+              <span className="text-4xl font-extrabold text-text-primary">$10</span>
+              <span className="text-text-secondary text-sm mb-1">/month</span>
+            </div>
+            <p className="text-text-secondary text-sm mb-6">Billed monthly. Cancel any time.</p>
+            <ul className="text-sm text-text-secondary space-y-3 mb-8 flex-1">
+              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>All features included</li>
+              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>Unlimited usage</li>
+              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>Priority support</li>
+            </ul>
+            <Link href="/join" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
+              Get started
+            </Link>
+          </div>
+          <div className="border-2 border-primary rounded-2xl p-8 flex flex-col relative">
+            <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-4 py-1 rounded-full">Best value</span>
+            <p className="text-text-secondary text-xs font-semibold uppercase tracking-widest mb-4">Annual</p>
+            <div className="flex items-end gap-1 mb-2">
+              <span className="text-4xl font-extrabold text-text-primary">$100</span>
+              <span className="text-text-secondary text-sm mb-1">/year</span>
+            </div>
+            <p className="text-text-secondary text-sm mb-6">Just $8.33/month — 2 months free.</p>
+            <ul className="text-sm text-text-secondary space-y-3 mb-8 flex-1">
+              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>Everything in Monthly</li>
+              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>2 months free</li>
+              <li className="flex items-start gap-2"><span className="text-green-500 font-bold mt-0.5">✓</span>Annual receipt</li>
+            </ul>
+            <Link href="/join" className="inline-flex items-center justify-center w-full py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20">
+              Get started
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Bottom CTA */}
       <section className="px-6 py-24 text-center">
         <div className="max-w-lg mx-auto">
