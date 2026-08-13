@@ -80,7 +80,6 @@ export function ModerationClient({ room, initialQueue }: ModerationClientProps) 
       />
       <ModerationPanel
         photo={selectedPhoto}
-        roomId={room.id}
         onModerated={handleModerated}
       />
     </>

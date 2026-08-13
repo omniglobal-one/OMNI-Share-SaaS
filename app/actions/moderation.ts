@@ -8,10 +8,10 @@ import type { ActionResult } from '@/types'
 // every other room-management action in the app). Kept as separate exports because
 // components/moderation/ModerationPanel.tsx (the dedicated moderation-queue page) calls these
 // by name; app/manage/[room_id]/ManageTabs.tsx calls moderatePhoto directly.
-export async function approvePhoto(photoId: string, _roomId: string): Promise<ActionResult> {
+export async function approvePhoto(photoId: string): Promise<ActionResult> {
   return moderatePhoto(photoId, 'approved')
 }
 
-export async function rejectPhoto(photoId: string, _roomId: string, reason?: string): Promise<ActionResult> {
+export async function rejectPhoto(photoId: string, reason?: string): Promise<ActionResult> {
   return moderatePhoto(photoId, 'rejected', reason)
 }

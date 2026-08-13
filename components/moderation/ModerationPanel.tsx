@@ -7,7 +7,6 @@ import type { Photo } from '@/types'
 
 interface ModerationPanelProps {
   photo: Photo | null
-  roomId: string
   onModerated: () => void
 }
 
@@ -17,7 +16,7 @@ function formatBytes(bytes: number | null): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-export function ModerationPanel({ photo, roomId, onModerated }: ModerationPanelProps) {
+export function ModerationPanel({ photo, onModerated }: ModerationPanelProps) {
   const [showRejectForm, setShowRejectForm] = useState(false)
   const [approving, setApproving] = useState(false)
   const [rejecting, setRejecting] = useState(false)
@@ -27,20 +26,20 @@ export function ModerationPanel({ photo, roomId, onModerated }: ModerationPanelP
     if (!photo) return
     setError(null)
     setApproving(true)
-    const result = await approvePhoto(photo.id, roomId)
+    const result = await approvePhoto(photo.id)
     setApproving(false)
     if (!result.success) {
       setError(result.error)
     } else {
       onModerated()
     }
-  }, [photo, roomId, onModerated])
+  }, [photo, onModerated])
 
   const handleReject = useCallback(async (reason?: string) => {
     if (!photo) return
     setError(null)
     setRejecting(true)
-    const result = await rejectPhoto(photo.id, roomId, reason)
+    const result = await rejectPhoto(photo.id, reason)
     setRejecting(false)
     if (!result.success) {
       setError(result.error)
@@ -48,7 +47,7 @@ export function ModerationPanel({ photo, roomId, onModerated }: ModerationPanelP
       setShowRejectForm(false)
       onModerated()
     }
-  }, [photo, roomId, onModerated])
+  }, [photo, onModerated])
 
   // Keyboard shortcuts: A = approve, R = show reject form
   useEffect(() => {
