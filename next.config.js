@@ -26,7 +26,7 @@ const nextConfig = {
         ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
         : "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
-      `img-src 'self' data: blob: https://${supabaseHost}`,
+      `img-src 'self' data: blob: https://${supabaseHost} https://picsum.photos https://fastly.picsum.photos`,
       "font-src 'self'",
       `connect-src 'self' https://${supabaseHost} ${supabaseWss}`,
       "worker-src 'self'",
