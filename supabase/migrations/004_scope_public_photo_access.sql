@@ -1,0 +1,11 @@
+-- Fixes Critical Finding: any approved photo in any room was readable by the anon key with
+-- no room-scoping and no join-code check, via `photos_for select to anon using (status='approved')`.
+--
+-- The app never actually needs the database to grant anon direct table access for this: the
+-- wall's initial page load (app/room/[id]/wall/page.tsx) and its polling endpoint
+-- (app/api/rooms/[id]/wall/route.ts) already fetch photos server-side via the service-role
+-- client, and both already correctly verify the room's join-code cookie before returning any
+-- photo data. Removing the anon grant closes direct-API enumeration without touching that
+-- already-correct app-layer gate. The client-side realtime hook that depended on this grant
+-- (hooks/usePhotoWall.ts) has been switched to poll the same authorised endpoint instead.
+drop policy if exists "Approved photos visible to public" on photos;

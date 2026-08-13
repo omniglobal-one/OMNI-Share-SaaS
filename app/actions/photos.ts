@@ -24,8 +24,10 @@ export async function moderatePhoto(
   const { data: photo } = await admin.from('photos').select('id, room_id, uploader_id').eq('id', photoId).single()
   if (!photo) return { success: false, error: 'Photo not found' }
 
-  // Must be admin, room owner, or room moderator
-  const isAdmin = profile.role === 'admin' || profile.role === 'manager'
+  // Must be admin, room owner, or room moderator. Managers are scoped to rooms they
+  // own/moderate, same as every other room-management action in this app — a manager
+  // with no relationship to a room should not be able to moderate its photos.
+  const isAdmin = profile.role === 'admin'
   if (!isAdmin) {
     const { data: mod } = await admin
       .from('room_moderators')

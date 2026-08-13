@@ -1,7 +1,7 @@
 # OMNI Wall SaaS — Credentials
 
 **Supabase Project:** `ogsvcmhaelneajwulcas` (eu-west-1)  
-**Production URL:** https://omni-wall-saas.vercel.app  
+**Production URL:** https://omni-share-saas.vercel.app  
 **GitHub Repo:** omniglobal-one/omni-wall-saas
 
 ---

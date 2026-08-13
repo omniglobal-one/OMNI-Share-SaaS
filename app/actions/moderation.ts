@@ -1,94 +1,17 @@
 'use server'
-import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
-import { insertAuditLog } from '@/lib/audit'
+import { moderatePhoto } from './photos'
 import type { ActionResult } from '@/types'
 
-async function canModerate(userId: string, roomId: string): Promise<boolean> {
-  const admin = createServiceRoleClient()
-  const { data: profile } = await admin.from('profiles').select('role').eq('id', userId).single()
-  if (profile?.role === 'admin' || profile?.role === 'manager') return true
-
-  const { data: mod } = await admin.from('room_moderators').select('id').eq('room_id', roomId).eq('moderator_id', userId).single()
-  if (mod) return true
-
-  const { data: room } = await admin.from('rooms').select('owner_id').eq('id', roomId).single()
-  return room?.owner_id === userId
+// Thin wrappers around the single, correctly-scoped moderation implementation in photos.ts.
+// This file used to duplicate the whole permission check and DB write, which had drifted out
+// of sync with photos.ts (managers could moderate rooms they had no relationship to, unlike
+// every other room-management action in the app). Kept as separate exports because
+// components/moderation/ModerationPanel.tsx (the dedicated moderation-queue page) calls these
+// by name; app/manage/[room_id]/ManageTabs.tsx calls moderatePhoto directly.
+export async function approvePhoto(photoId: string, _roomId: string): Promise<ActionResult> {
+  return moderatePhoto(photoId, 'approved')
 }
 
-export async function approvePhoto(photoId: string, roomId: string): Promise<ActionResult> {
-  const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Not authenticated' }
-
-  const allowed = await canModerate(user.id, roomId)
-  if (!allowed) return { success: false, error: 'Insufficient permissions' }
-
-  const admin = createServiceRoleClient()
-
-  const { data: photo } = await admin.from('photos').select('uploader_id').eq('id', photoId).single()
-  const { data: uploader } = photo?.uploader_id
-    ? await admin.from('profiles').select('username').eq('id', photo.uploader_id).single()
-    : { data: null }
-
-  const { error } = await admin.from('photos').update({
-    status: 'approved',
-    moderated_by: user.id,
-    moderated_at: new Date().toISOString(),
-  }).eq('id', photoId)
-
-  if (error) return { success: false, error: 'Failed to approve photo' }
-
-  await Promise.resolve(admin.rpc('increment_approved_count', { room_id_param: roomId })).catch(() => {})
-
-  await insertAuditLog({
-    actorId: user.id,
-    action: 'photo.approved',
-    targetType: 'room',
-    targetId: roomId,
-    metadata: { photoId, ...(uploader?.username ? { uploader: uploader.username } : {}) },
-  })
-
-  return { success: true, data: undefined }
-}
-
-export async function rejectPhoto(photoId: string, roomId: string, reason?: string): Promise<ActionResult> {
-  if (reason && reason.length > 500) return { success: false, error: 'Rejection reason must be 500 characters or fewer.' }
-
-  const supabase = await createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'Not authenticated' }
-
-  const allowed = await canModerate(user.id, roomId)
-  if (!allowed) return { success: false, error: 'Insufficient permissions' }
-
-  const admin = createServiceRoleClient()
-
-  const { data: photo } = await admin.from('photos').select('uploader_id').eq('id', photoId).single()
-  const { data: uploader } = photo?.uploader_id
-    ? await admin.from('profiles').select('username').eq('id', photo.uploader_id).single()
-    : { data: null }
-
-  const updateData: Record<string, unknown> = {
-    status: 'rejected',
-    moderated_by: user.id,
-    moderated_at: new Date().toISOString(),
-    ...(reason ? { rejection_reason: reason } : {}),
-  }
-
-  const { error } = await admin.from('photos').update(updateData).eq('id', photoId)
-  if (error) return { success: false, error: 'Failed to reject photo' }
-
-  await insertAuditLog({
-    actorId: user.id,
-    action: 'photo.rejected',
-    targetType: 'room',
-    targetId: roomId,
-    metadata: {
-      photoId,
-      ...(uploader?.username ? { uploader: uploader.username } : {}),
-      ...(reason ? { reason } : {}),
-    },
-  })
-
-  return { success: true, data: undefined }
+export async function rejectPhoto(photoId: string, _roomId: string, reason?: string): Promise<ActionResult> {
+  return moderatePhoto(photoId, 'rejected', reason)
 }

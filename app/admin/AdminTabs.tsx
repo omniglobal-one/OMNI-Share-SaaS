@@ -45,6 +45,13 @@ export function AdminTabs({ users: initialUsers, rooms: initialRooms, auditLogs,
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
 
+  // Delete user / delete room confirmation modals
+  const [deleteUserTarget, setDeleteUserTarget] = useState<Profile | null>(null)
+  const [deletingUser, setDeletingUser] = useState(false)
+  const [deleteRoomTarget, setDeleteRoomTarget] = useState<Room | null>(null)
+  const [deleteRoomConfirmName, setDeleteRoomConfirmName] = useState('')
+  const [deletingRoom, setDeletingRoom] = useState(false)
+
   async function handleCreateUser(e: React.FormEvent) {
     e.preventDefault()
     setCreateError(null)
@@ -80,11 +87,14 @@ export function AdminTabs({ users: initialUsers, rooms: initialRooms, auditLogs,
     }
   }
 
-  async function handleDeleteUser(userId: string) {
-    if (!confirm('Delete this user? This cannot be undone.')) return
-    const result = await deleteUser(userId)
+  async function handleDeleteUser() {
+    if (!deleteUserTarget) return
+    setDeletingUser(true)
+    const result = await deleteUser(deleteUserTarget.id)
+    setDeletingUser(false)
     if (result.success) {
-      setUserList(prev => prev.filter(u => u.id !== userId))
+      setUserList(prev => prev.filter(u => u.id !== deleteUserTarget.id))
+      setDeleteUserTarget(null)
     }
   }
 
@@ -95,12 +105,15 @@ export function AdminTabs({ users: initialUsers, rooms: initialRooms, auditLogs,
     }
   }
 
-  async function handleDeleteRoom(roomId: string, roomName: string) {
-    const input = window.prompt(`Type "${roomName}" to confirm deletion:`)
-    if (input !== roomName) return
-    const result = await deleteRoom(roomId)
+  async function handleDeleteRoom() {
+    if (!deleteRoomTarget || deleteRoomConfirmName !== deleteRoomTarget.name) return
+    setDeletingRoom(true)
+    const result = await deleteRoom(deleteRoomTarget.id)
+    setDeletingRoom(false)
     if (result.success) {
-      setRoomList(prev => prev.filter(r => r.id !== roomId))
+      setRoomList(prev => prev.filter(r => r.id !== deleteRoomTarget.id))
+      setDeleteRoomTarget(null)
+      setDeleteRoomConfirmName('')
     }
   }
 
@@ -111,7 +124,7 @@ export function AdminTabs({ users: initialUsers, rooms: initialRooms, auditLogs,
       )
     : userList
 
-  const activeRooms = userList.filter(u => !u.is_suspended).length
+  const activeUsers = userList.filter(u => !u.is_suspended).length
   const totalPhotos = roomList.reduce((acc, r) => acc + r.upload_count, 0)
 
   return (
@@ -120,7 +133,7 @@ export function AdminTabs({ users: initialUsers, rooms: initialRooms, auditLogs,
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Total Users', value: userList.length },
-          { label: 'Active Users', value: activeRooms },
+          { label: 'Active Users', value: activeUsers },
           { label: 'Total Rooms', value: roomList.length },
           { label: 'Total Uploads', value: totalPhotos },
         ].map(s => (
@@ -205,7 +218,7 @@ export function AdminTabs({ users: initialUsers, rooms: initialRooms, auditLogs,
                               ) : (
                                 <button onClick={() => handleSuspend(u.id)} className="btn-secondary text-xs py-1 px-2">Suspend</button>
                               )}
-                              <button onClick={() => handleDeleteUser(u.id)} className="btn-danger text-xs py-1 px-2">Delete</button>
+                              <button onClick={() => setDeleteUserTarget(u)} className="btn-danger text-xs py-1 px-2">Delete</button>
                             </>
                           )}
                         </div>
@@ -245,7 +258,7 @@ export function AdminTabs({ users: initialUsers, rooms: initialRooms, auditLogs,
                         {r.status === 'active' && (
                           <button onClick={() => handleArchiveRoom(r.id)} className="btn-secondary text-xs py-1 px-2">Archive</button>
                         )}
-                        <button onClick={() => handleDeleteRoom(r.id, r.name)} className="btn-danger text-xs py-1 px-2">Delete</button>
+                        <button onClick={() => { setDeleteRoomTarget(r); setDeleteRoomConfirmName('') }} className="btn-danger text-xs py-1 px-2">Delete</button>
                       </div>
                     </td>
                   </tr>
@@ -330,6 +343,43 @@ export function AdminTabs({ users: initialUsers, rooms: initialRooms, auditLogs,
             <button type="button" onClick={() => setShowCreate(false)} className="btn-secondary">Cancel</button>
           </div>
         </form>
+      </Modal>
+
+      {/* Delete user modal */}
+      <Modal open={deleteUserTarget !== null} onClose={() => setDeleteUserTarget(null)} title="Delete user?" size="sm">
+        <p className="text-text-secondary text-sm mb-4">
+          This is permanent. <strong className="text-text-primary">{deleteUserTarget?.full_name ?? 'This user'}</strong> will lose access immediately and their uploads will remain attributed to a deleted account.
+        </p>
+        <div className="flex gap-2">
+          <button onClick={handleDeleteUser} className="btn-danger flex-1" disabled={deletingUser}>
+            {deletingUser ? 'Deleting...' : 'Delete permanently'}
+          </button>
+          <button onClick={() => setDeleteUserTarget(null)} className="btn-secondary">Cancel</button>
+        </div>
+      </Modal>
+
+      {/* Delete room modal */}
+      <Modal open={deleteRoomTarget !== null} onClose={() => setDeleteRoomTarget(null)} title="Delete room?" size="sm">
+        <p className="text-text-secondary text-sm mb-3">
+          This is permanent. Type <strong className="font-mono text-danger">{deleteRoomTarget?.name}</strong> to confirm.
+        </p>
+        <input
+          type="text"
+          className="input mb-4"
+          value={deleteRoomConfirmName}
+          onChange={e => setDeleteRoomConfirmName(e.target.value)}
+          placeholder={deleteRoomTarget?.name}
+        />
+        <div className="flex gap-2">
+          <button
+            onClick={handleDeleteRoom}
+            className="btn-danger flex-1"
+            disabled={deletingRoom || deleteRoomConfirmName !== deleteRoomTarget?.name}
+          >
+            {deletingRoom ? 'Deleting...' : 'Delete permanently'}
+          </button>
+          <button onClick={() => setDeleteRoomTarget(null)} className="btn-secondary">Cancel</button>
+        </div>
       </Modal>
     </div>
   )

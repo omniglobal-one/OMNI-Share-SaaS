@@ -55,7 +55,7 @@ export async function GET(
 
   const { data, error } = await admin
     .from('photos')
-    .select('id, public_url, width, height, uploaded_at')
+    .select('id, room_id, public_url, thumbnail_url, file_name, width, height, uploaded_at')
     .eq('room_id', id)
     .eq('status', 'approved')
     .order('uploaded_at', { ascending: false })

@@ -21,7 +21,7 @@ CREATE POLICY "Moderators can read profiles in their rooms" ON profiles
       SELECT 1 FROM room_moderators rmo
       JOIN room_members rm ON rmo.room_id = rm.room_id
       WHERE rmo.moderator_id = auth.uid()
-        AND rm.user_id = id
+        AND rm.user_id = profiles.id
     )
   );
 
