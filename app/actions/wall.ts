@@ -1,15 +1,14 @@
 'use server'
 import { cookies, headers } from 'next/headers'
 import { createServiceRoleClient } from '@/lib/supabase/server'
-import { constantTimeEqualsUpperCase } from '@/lib/security'
+import { constantTimeEqualsUpperCase, getClientIp } from '@/lib/security'
 
 export async function unlockWall(roomId: string, code: string): Promise<{ success: boolean; error?: string }> {
   const admin = createServiceRoleClient()
 
   // Rate limit: 8 attempts per IP per minute per room, closing the join-code brute-force gap
   // (6 chars from a 32-char alphabet is ~1B combinations but was previously unthrottled).
-  const h = await headers()
-  const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() ?? h.get('x-real-ip') ?? 'unknown'
+  const ip = getClientIp(await headers())
   const { data: allowed } = await admin.rpc('check_rate_limit', {
     p_key: `unlock_wall:${ip}:${roomId}`, p_max_count: 8, p_window_seconds: 60,
   })

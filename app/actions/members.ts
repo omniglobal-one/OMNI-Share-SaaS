@@ -2,12 +2,8 @@
 import { headers } from 'next/headers'
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { insertAuditLog } from '@/lib/audit'
+import { getClientIp } from '@/lib/security'
 import type { ActionResult } from '@/types'
-
-async function getClientIp(): Promise<string> {
-  const h = await headers()
-  return h.get('x-forwarded-for')?.split(',')[0]?.trim() ?? h.get('x-real-ip') ?? 'unknown'
-}
 
 export async function guestJoinRoom(code: string, displayName?: string, accessToken?: string): Promise<ActionResult<string>> {
   if (displayName && displayName.length > 120) return { success: false, error: 'Display name must be 120 characters or fewer.' }
@@ -18,7 +14,7 @@ export async function guestJoinRoom(code: string, displayName?: string, accessTo
   // guard for the room join code (an anonymous account is useless for uploading without
   // successfully joining a room first, so throttling here closes both the code-guessing path
   // and the "mint unlimited anonymous accounts to bypass the per-user upload cap" path).
-  const ip = await getClientIp()
+  const ip = getClientIp(await headers())
   const { data: allowed } = await admin.rpc('check_rate_limit', {
     p_key: `join_room:${ip}`, p_max_count: 10, p_window_seconds: 60,
   })
@@ -88,7 +84,7 @@ export async function joinRoom(code: string): Promise<ActionResult<string>> {
 
   const admin = createServiceRoleClient()
 
-  const ip = await getClientIp()
+  const ip = getClientIp(await headers())
   const { data: allowed } = await admin.rpc('check_rate_limit', {
     p_key: `join_room:${ip}`, p_max_count: 10, p_window_seconds: 60,
   })

@@ -1,13 +1,13 @@
 'use server'
 import { headers } from 'next/headers'
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
+import { getClientIp } from '@/lib/security'
 import type { ActionResult } from '@/types'
 
 export async function signIn(email: string, password: string): Promise<ActionResult> {
   // Rate limit: 10 login attempts per IP per minute. Supabase Auth has its own platform-level
   // limits, but this app previously had zero backstop of its own against credential stuffing.
-  const h = await headers()
-  const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() ?? h.get('x-real-ip') ?? 'unknown'
+  const ip = getClientIp(await headers())
   const admin = createServiceRoleClient()
   const { data: allowed } = await admin.rpc('check_rate_limit', {
     p_key: `sign_in:${ip}`, p_max_count: 10, p_window_seconds: 60,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceRoleClient } from '@/lib/supabase/server'
+import { getClientIp } from '@/lib/security'
 
 export async function GET(
   request: NextRequest,
@@ -11,8 +12,7 @@ export async function GET(
   // Rate limit: this endpoint is a room-existence + metadata oracle (404 vs 200+name/
   // description) for an unauthenticated caller — without a limit it's a clean brute-force
   // target for the 6-character join code.
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    ?? request.headers.get('x-real-ip') ?? 'unknown'
+  const ip = getClientIp(request.headers)
   const { data: allowed } = await supabase.rpc('check_rate_limit', {
     p_key: `join_lookup:${ip}`, p_max_count: 20, p_window_seconds: 60,
   })

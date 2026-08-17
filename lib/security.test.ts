@@ -1,5 +1,27 @@
 import { describe, it, expect } from 'vitest'
-import { constantTimeEqualsUpperCase } from './security'
+import { constantTimeEqualsUpperCase, getClientIp } from './security'
+
+describe('getClientIp', () => {
+  it('prefers x-vercel-forwarded-for over x-forwarded-for', () => {
+    const h = new Headers({ 'x-vercel-forwarded-for': '1.1.1.1', 'x-forwarded-for': '2.2.2.2' })
+    expect(getClientIp(h)).toBe('1.1.1.1')
+  })
+
+  it('falls back to x-forwarded-for when the Vercel header is absent', () => {
+    const h = new Headers({ 'x-forwarded-for': '2.2.2.2' })
+    expect(getClientIp(h)).toBe('2.2.2.2')
+  })
+
+  it('takes the first IP in a comma-separated forwarding chain', () => {
+    const h = new Headers({ 'x-forwarded-for': '2.2.2.2, 3.3.3.3, 4.4.4.4' })
+    expect(getClientIp(h)).toBe('2.2.2.2')
+  })
+
+  it('falls back to x-real-ip, then "unknown"', () => {
+    expect(getClientIp(new Headers({ 'x-real-ip': '5.5.5.5' }))).toBe('5.5.5.5')
+    expect(getClientIp(new Headers())).toBe('unknown')
+  })
+})
 
 describe('constantTimeEqualsUpperCase', () => {
   it('returns true for an exact match', () => {
