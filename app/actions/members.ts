@@ -5,7 +5,7 @@ import { insertAuditLog } from '@/lib/audit'
 import { getClientIp } from '@/lib/security'
 import type { ActionResult } from '@/types'
 
-export async function guestJoinRoom(code: string, displayName?: string, accessToken?: string): Promise<ActionResult<string>> {
+export async function guestJoinRoom(code: string, displayName?: string): Promise<ActionResult<string>> {
   if (displayName && displayName.length > 120) return { success: false, error: 'Display name must be 120 characters or fewer.' }
 
   const admin = createServiceRoleClient()
@@ -20,19 +20,19 @@ export async function guestJoinRoom(code: string, displayName?: string, accessTo
   })
   if (allowed === false) return { success: false, error: 'Too many attempts. Please wait a minute and try again.' }
 
-  // Validate the session: prefer the access token passed directly from the client
-  // (avoids cookie-timing race on freshly created anonymous sessions), fall back
-  // to reading the session cookie for already-authenticated callers.
+  // Sign in anonymously server-side if there's no existing session — this used to happen on the
+  // client (supabase.auth.signInAnonymously()), which meant the newly-issued session had to be
+  // written to a JS-writable cookie. Doing it here means the resulting session cookie is written
+  // by the server client and can be a genuine httpOnly cookie (see lib/supabase/server.ts).
+  const supabase = await createServerSupabaseClient()
+  const { data: { user: existingUser } } = await supabase.auth.getUser()
   let userId: string
-  if (accessToken) {
-    const { data: { user }, error } = await admin.auth.getUser(accessToken)
-    if (error || !user) return { success: false, error: 'Not authenticated' }
-    userId = user.id
+  if (existingUser) {
+    userId = existingUser.id
   } else {
-    const supabase = await createServerSupabaseClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { success: false, error: 'Not authenticated' }
-    userId = user.id
+    const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously()
+    if (anonError || !anonData.user) return { success: false, error: 'Could not start a guest session. Please try again.' }
+    userId = anonData.user.id
   }
 
   // Ensure profile exists — anonymous sign-in may not trigger the DB hook in time

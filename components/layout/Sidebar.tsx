@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { signOut } from '@/app/actions/auth'
 import type { Role } from '@/types'
 
 interface NavItem {
@@ -89,8 +89,7 @@ export function Sidebar({ role, userEmail, userName, subNavLabel, subNavItems }:
   const navItems = getNavItems(role)
 
   async function handleSignOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    await signOut()
     router.push('/login')
     router.refresh()
   }
