@@ -18,8 +18,9 @@ export async function moderatePhoto(
 
   const admin = createServiceRoleClient()
 
-  const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single()
+  const { data: profile } = await admin.from('profiles').select('role, is_suspended').eq('id', user.id).single()
   if (!profile) return { success: false, error: 'Not authenticated' }
+  if (profile.is_suspended) return { success: false, error: 'Your account is suspended' }
 
   const { data: photo } = await admin.from('photos').select('id, room_id, uploader_id').eq('id', photoId).single()
   if (!photo) return { success: false, error: 'Photo not found' }

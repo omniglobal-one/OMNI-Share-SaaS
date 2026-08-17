@@ -46,6 +46,7 @@ export async function changeRole(targetUserId: string, role: Role): Promise<Acti
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not authenticated' }
   if (!await isAdmin(user.id)) return { success: false, error: 'Admin only' }
+  if (targetUserId === user.id) return { success: false, error: 'You cannot change your own role.' }
 
   if (!(ALLOWED_ROLES as string[]).includes(role)) return { success: false, error: 'Invalid role.' }
 
@@ -63,6 +64,7 @@ export async function suspendUser(targetUserId: string): Promise<ActionResult> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not authenticated' }
   if (!await isAdmin(user.id)) return { success: false, error: 'Admin only' }
+  if (targetUserId === user.id) return { success: false, error: 'You cannot suspend your own account.' }
 
   const admin = createServiceRoleClient()
   const { error } = await admin.from('profiles').update({ is_suspended: true }).eq('id', targetUserId)
@@ -93,6 +95,7 @@ export async function deleteUser(targetUserId: string): Promise<ActionResult> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { success: false, error: 'Not authenticated' }
   if (!await isAdmin(user.id)) return { success: false, error: 'Admin only' }
+  if (targetUserId === user.id) return { success: false, error: 'You cannot delete your own account.' }
 
   const admin = createServiceRoleClient()
   const { error } = await admin.auth.admin.deleteUser(targetUserId)

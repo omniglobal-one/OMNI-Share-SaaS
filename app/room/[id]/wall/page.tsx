@@ -27,7 +27,7 @@ export default async function WallPage({ params }: { params: Promise<{ id: strin
 
   if (!isUnlocked) {
     return (
-      <WallGate joinCode={room.join_code} roomName={room.name} roomId={room.id}>
+      <WallGate roomId={room.id} roomName={room.name}>
         {/* children only render after gate passes and router.refresh() re-runs this page */}
         <></>
       </WallGate>

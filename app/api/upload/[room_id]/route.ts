@@ -150,6 +150,12 @@ export async function POST(
 
   if (insertError) {
     await admin.storage.from('photos').remove([storagePath])
+    // The pre-check above is a fast-path UX nicety; the DB trigger (enforce_upload_cap) is the
+    // authoritative, race-safe enforcement — a concurrent request can still hit it even after
+    // passing the pre-check above.
+    if (insertError.message?.includes('upload_cap_exceeded')) {
+      return NextResponse.json({ error: `Upload limit reached (${room.max_uploads_per_user} photos per user)` }, { status: 429 })
+    }
     return NextResponse.json({ error: 'Failed to save photo' }, { status: 500 })
   }
 

@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from 'react'
 import { PhotoGrid } from '@/components/wall/PhotoGrid'
 import { SlideshowPlayer } from '@/components/wall/SlideshowPlayer'
 import { NewPhotoToast } from '@/components/wall/NewPhotoToast'
-import { WallGate } from '@/components/wall/WallGate'
 import { usePhotoWall } from '@/hooks/usePhotoWall'
 import type { Room, Photo, WallColors, SocialLink } from '@/types'
 
@@ -88,9 +87,10 @@ function WallContent({ room, initialPhotos }: WallDisplayProps) {
 }
 
 export function WallDisplay({ room, initialPhotos }: WallDisplayProps) {
-  return (
-    <WallGate joinCode={room.join_code} roomName={room.name} roomId={room.id}>
-      <WallContent room={room} initialPhotos={initialPhotos} />
-    </WallGate>
-  )
+  // No inner gate here: app/room/[id]/wall/page.tsx already performed the authoritative
+  // server-side cookie check before rendering this component at all. A second client-side
+  // gate would have needed the real join code passed to it as a prop, which is exactly the
+  // leak this component used to have — Next.js serializes every Client Component prop into
+  // the page's initial payload regardless of what that component's internal logic does with it.
+  return <WallContent room={room} initialPhotos={initialPhotos} />
 }

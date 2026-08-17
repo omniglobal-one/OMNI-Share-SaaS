@@ -6,37 +6,37 @@ import { unlockWall } from '@/app/actions/wall'
 const INACTIVITY_MS = 5 * 60 * 1000 // 5 minutes
 
 interface WallGateProps {
-  joinCode: string
+  roomId: string
   roomName: string
-  /** Room UUID — when provided, the gate sets a server-side cookie on unlock */
-  roomId?: string
-  /** If true, skip the gate entirely (e.g. cookie already verified server-side) */
+  /** If true, skip the gate entirely (e.g. caller is already a verified staff/member session) */
   bypass?: boolean
   children: React.ReactNode
 }
 
-export function WallGate({ joinCode, roomName, roomId, bypass = false, children }: WallGateProps) {
+// The real join code is never sent to this component or compared client-side — both would
+// leak it into the page's initial HTML/RSC payload before the visitor proves they know it.
+// Every attempt is verified exclusively by the unlockWall server action (rate-limited),
+// which sets an httpOnly cookie on success; router.refresh() then re-runs the parent server
+// component, which reveals real data only once it sees that cookie itself.
+export function WallGate({ roomId, roomName, bypass = false, children }: WallGateProps) {
   const router = useRouter()
-  const storageKey = `wall_access_${joinCode}`
-  const [unlocked, setUnlocked] = useState(false)
+  const [unlocked, setUnlocked] = useState(bypass)
   const [input, setInput] = useState('')
-  const [error, setError] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const lock = useCallback(() => {
-    sessionStorage.removeItem(storageKey)
     setUnlocked(false)
     setInput('')
-    setError(false)
-  }, [storageKey])
+    setError(null)
+  }, [])
 
   const resetTimer = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(lock, INACTIVITY_MS)
   }, [lock])
 
-  // Start inactivity timer once unlocked
   useEffect(() => {
     if (!unlocked || bypass) return
     const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll']
@@ -48,31 +48,22 @@ export function WallGate({ joinCode, roomName, roomId, bypass = false, children 
     }
   }, [unlocked, bypass, resetTimer])
 
-  useEffect(() => {
-    setMounted(true)
-    if (bypass || sessionStorage.getItem(storageKey) === '1') {
-      setUnlocked(true)
-    }
-  }, [storageKey, bypass])
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (input.toUpperCase().trim() === joinCode.toUpperCase()) {
-      sessionStorage.setItem(storageKey, '1')
-      if (roomId) {
-        // Set server-side cookie so the wall page can verify access without
-        // trusting client-only sessionStorage.
-        await unlockWall(roomId, input.toUpperCase().trim())
-        router.refresh()
-      }
+    if (input.length !== 6 || submitting) return
+    setSubmitting(true)
+    setError(null)
+    const result = await unlockWall(roomId, input)
+    setSubmitting(false)
+    if (result.success) {
       setUnlocked(true)
+      router.refresh()
     } else {
-      setError(true)
+      setError(result.error ?? 'Incorrect code. Try again.')
       setInput('')
     }
   }
 
-  if (!mounted) return null
   if (unlocked) return <>{children}</>
 
   return (
@@ -96,13 +87,14 @@ export function WallGate({ joinCode, roomName, roomId, bypass = false, children 
             value={input}
             onChange={e => {
               setInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))
-              setError(false)
+              setError(null)
             }}
             placeholder="XXXXXX"
             maxLength={6}
             autoFocus
             autoCapitalize="characters"
             spellCheck={false}
+            disabled={submitting}
             className={`w-full text-center text-3xl font-mono tracking-[0.5em] py-4 px-4 rounded-xl bg-white/5 border-2 text-white placeholder-white/20 focus:outline-none transition-colors ${
               error
                 ? 'border-red-500 bg-red-500/10'
@@ -113,15 +105,15 @@ export function WallGate({ joinCode, roomName, roomId, bypass = false, children 
           />
 
           {error && (
-            <p className="text-red-400 text-sm">Incorrect code. Try again.</p>
+            <p className="text-red-400 text-sm">{error}</p>
           )}
 
           <button
             type="submit"
-            disabled={input.length !== 6}
+            disabled={input.length !== 6 || submitting}
             className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            Continue
+            {submitting ? 'Checking...' : 'Continue'}
           </button>
         </form>
 

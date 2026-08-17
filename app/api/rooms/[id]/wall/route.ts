@@ -20,8 +20,24 @@ export async function GET(
       .select('role')
       .eq('id', user.id)
       .single()
-    if (profile && ['admin', 'manager', 'moderator'].includes(profile.role)) {
+    // Platform admin only — manager/moderator must be scoped to THIS room (below), matching
+    // every other room-management action. A blanket role check here previously let any
+    // manager/moderator platform-wide view any room's wall with no relationship to it.
+    if (profile?.role === 'admin') {
       isAuthorised = true
+    }
+    if (!isAuthorised) {
+      const { data: room } = await admin.from('rooms').select('owner_id').eq('id', id).single()
+      if (room?.owner_id === user.id) isAuthorised = true
+    }
+    if (!isAuthorised) {
+      const { data: mod } = await admin
+        .from('room_moderators')
+        .select('id')
+        .eq('room_id', id)
+        .eq('moderator_id', user.id)
+        .single()
+      if (mod) isAuthorised = true
     }
     // Also allow any room member
     if (!isAuthorised) {

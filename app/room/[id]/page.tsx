@@ -1,4 +1,5 @@
 import { redirect, notFound } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -51,13 +52,18 @@ export default async function RoomPage({ params }: { params: Promise<{ id: strin
     .eq('uploader_id', user.id)
     .order('uploaded_at', { ascending: false })
 
-  // Staff (non-anonymous) bypass the code gate — anonymous guests must enter it
+  // Staff (non-anonymous) bypass the code gate — anonymous guests must enter it, unless
+  // they already unlocked this room this browser session (same server-verified httpOnly
+  // cookie the /wall route checks — this is what lets the gate stay unlocked across a
+  // reload without storing anything unlocked-related client-side).
   const isAnonymous = user.is_anonymous ?? false
   const staffRoles = ['admin', 'manager', 'moderator']
-  const bypassGate = !isAnonymous || staffRoles.includes((profile as Profile).role)
+  const cookieStore = await cookies()
+  const alreadyUnlocked = cookieStore.get(`wall_${id}`)?.value?.toUpperCase() === room.join_code.toUpperCase()
+  const bypassGate = !isAnonymous || staffRoles.includes((profile as Profile).role) || alreadyUnlocked
 
   return (
-    <WallGate joinCode={room.join_code} roomName={room.name} bypass={bypassGate}>
+    <WallGate roomId={room.id} roomName={room.name} bypass={bypassGate}>
       <DashboardShell sidebar={
         <Sidebar
           role={(profile as Profile).role}
