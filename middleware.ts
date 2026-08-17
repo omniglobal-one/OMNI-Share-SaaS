@@ -57,8 +57,9 @@ export async function middleware(request: NextRequest) {
         setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           response = NextResponse.next({ request: { headers: requestHeaders } })
+          // httpOnly: the durable session cookie must stay server-only — see lib/supabase/server.ts
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, { ...options, secure: true } as never)
+            response.cookies.set(name, value, { ...options, secure: true, httpOnly: true } as never)
           )
         },
       },

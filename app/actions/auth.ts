@@ -39,6 +39,17 @@ export async function signOut(): Promise<ActionResult> {
   return { success: true, data: undefined }
 }
 
+// Hands the browser client a short-lived access token for Realtime channel auth / authenticated
+// REST calls, without ever exposing the refresh token (which stays in the httpOnly session
+// cookie, server-only). getSession() (not getUser()) is used deliberately here — it's the only
+// call that returns the raw token string; the caller only uses it for outbound requests that
+// Supabase itself will authorize, so a non-revalidated read is fine.
+export async function getRealtimeAccessToken(): Promise<string | null> {
+  const supabase = await createServerSupabaseClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  return session?.access_token ?? null
+}
+
 export async function sendMagicLink(email: string): Promise<ActionResult> {
   const supabase = await createServerSupabaseClient()
   const { error } = await supabase.auth.signInWithOtp({

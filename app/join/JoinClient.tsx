@@ -2,9 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { joinRoom, guestJoinRoom } from '@/app/actions/members'
-import { createClient } from '@/lib/supabase/client'
 
-export function JoinClient() {
+export function JoinClient({ initialAuthed }: { initialAuthed: boolean }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const preCode = searchParams.get('code') ?? ''
@@ -13,15 +12,8 @@ export function JoinClient() {
   const [ageConfirmed, setAgeConfirmed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [authed, setAuthed] = useState<boolean | null>(null)
+  const [authed] = useState<boolean>(initialAuthed)
   const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => {
-      setAuthed(!!data.user)
-    })
-  }, [])
 
   // Auto-submit if code pre-filled and user is already logged in
   useEffect(() => {
@@ -32,7 +24,6 @@ export function JoinClient() {
   }, [authed])
 
   async function handleJoin(joinCode?: string) {
-    if (authed === null) return
     const codeToUse = (joinCode ?? code).toUpperCase()
     if (codeToUse.length !== 6) {
       setError('Enter a 6-character code.')
@@ -49,17 +40,9 @@ export function JoinClient() {
 
     try {
       if (authed === false) {
-        // Guest flow: sign in anonymously then join
-        const supabase = createClient()
-        const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously()
-        if (anonError || !anonData.session) {
-          setError('Could not start a guest session. Please try again.')
-          setLoading(false)
-          return
-        }
-        // Pass the access token directly — avoids cookie-timing race where the
-        // newly created session hasn't been written to document.cookie yet
-        const result = await guestJoinRoom(codeToUse, displayName.trim() || undefined, anonData.session.access_token)
+        // Guest flow: guestJoinRoom signs in anonymously server-side (so the resulting session
+        // cookie can be httpOnly) and joins the room in the same call.
+        const result = await guestJoinRoom(codeToUse, displayName.trim() || undefined)
         setLoading(false)
         if (!result.success) {
           setError(result.error)
@@ -162,17 +145,12 @@ export function JoinClient() {
           <button
             onClick={() => handleJoin()}
             className="btn-primary w-full justify-center text-base py-3"
-            disabled={loading || code.length !== 6 || authed === null}
+            disabled={loading || code.length !== 6}
           >
             {loading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Joining...
-              </>
-            ) : authed === null ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Loading...
               </>
             ) : 'Join Room'}
           </button>
